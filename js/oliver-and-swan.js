@@ -6,17 +6,47 @@
     var slideMasterOptions = [
         {
             key: "letterbox",
-            type: "boolean"
+            type: "boolean",
+            default: false
+        },
+        {
+            key: "aspect-ratio",
+            type: function (val) {
+                // Takes a string, such as 4:3 and then converts it into a decimal ratio (4/3 ~= 1.33333)
+                var arr = val.split(":");
+                return parseFloat(arr[0]) / parseFloat(arr[1]);
+            },
+            default: 16/9
+        },
+        {
+            key: "container-height",
+            type: "number",
+            default: 500
         }
     ];
+    
+    // Takes a string seperated by hyphens (default) and converts it to camel case
+    function toCamelCase(str, seperator) {
+        if (typeof seperator === "undefined") {
+            seperator = "-";
+        }
+        return str.split(seperator).map(function (e, i) {
+            if (i === 0) {
+                return e.charAt(0).toLowerCase() + e.slice(1);
+            } else {
+                return e.charAt(0).toUpperCase() + e.slice(1);
+            }
+        }).join("");
+    }
     
     //Returns an object based on a DOM elements data attributes that match the template
     $.fn.getDOMOptions = function (template) {
         var i, attr, type, key, val,
             options = { };
         for (i in template) {
-            key = template[i].key;
-            attr = this.attr(key);
+            key = toCamelCase(template[i].key);
+            attr = this.attr("data-" + template[i].key);
+            console.log(key + ": " + attr);
             if (typeof attr !== "undefined") {
                 type = template[i].type;
                 switch (typeof type) {
@@ -47,7 +77,11 @@
                         break;
                     //Is it a function that will convert the string into the real value?
                     case "function":
-                        options[key] = type(attr);
+                        val = type(attr);
+                        
+                        if (typeof val !== "undefined") {
+                            options[key] = val;
+                        }
                         break;
                     //If we don't know, just assume it's a string
                     default:
@@ -55,29 +89,49 @@
                         break;
                 }
             }
-        }
-    };
-    
-    $.fn.present = function (options) {
-        var defaultOptions = { },
-            container = $('<div class="presentation-container"></div>'),
-            receivedOptions = { },
-            i;
-        //This little snippet checks if
-        for (i in slideMasterOptions) {
-            
-        }
-        options = $.extend({ }, options, defaultOptions);
-        
-        
-        
-        
-        if (!options.hasOwnProperty("letterbox")) {
-            options.letterbox = false;
-            if ((this.data("letterbox")) || (this.data("letterbox") === "")) {
-                options.letterbox = true;
+            //If the object still hasn't got a value, pull the default one
+            if (!options.hasOwnProperty(key)) {
+                options[key] = template[i].default;
             }
         }
+        return options;
+    };
+    
+    //Where all the magic happpens
+    $.fn.present = function (options) {
+        var container = $('<div class="presentation-container"></div>'),
+            slideMaster = this,
+            domOptions = this.getDOMOptions(slideMasterOptions),
+            containerHeight,
+            containerWidth,
+            i, masterWidth, masterHeight;
+        this.addClass("slide-master");
+        options = $.extend({ }, domOptions, options);
+        
+        containerHeight = options.containerHeight;
+        containerWidth = containerHeight * options.aspectRatio;
+        container.height(containerHeight);
+        container.width(containerWidth);
+        container.css("transform-origin", "0 0");
+        
+        $(window).resize(function(e) {
+            var ratio, scale;
+            if ((slideMaster.width() != masterWidth) || (slideMaster.height() != masterHeight)) {
+                masterWidth = slideMaster.width();
+                masterHeight = slideMaster.height();
+                ratio = masterWidth / masterHeight;
+                //If the viewport is wider, scale according to height
+                if (ratio > options.aspectRatio) {
+                    scale = masterHeight / containerHeight;
+                    container.css({left: (masterWidth - scale * containerWidth) / 2, top: 0});
+                } else {
+                    scale = masterWidth / containerWidth;
+                    container.css({left: 0, top: (masterHeight - scale * containerHeight) / 2});
+                }
+                
+                container.css("scale", scale);
+            }
+        });
         
         this.children("*").appendTo(container);
         container.appendTo(this);

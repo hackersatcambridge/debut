@@ -3,5 +3,16 @@
     left: 0;
     top: 0;
     height: 100%;
-    width: 100%l
+    width: 100%;
+}
+
+.presentation-container {
+    position: absolute;
+    background-color: #ffffff;
+    left: 0;
+    top: 0;
+}
+
+.slide-master {
+    background-color: #000000;
 }
