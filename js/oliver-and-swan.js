@@ -1,8 +1,11 @@
 /* jshint browser:true */
 /* jshint -W086 */
 /* global jQuery:false */
+/* global console:false */
 (function ($) {
     'use strict';
+    
+    //Settings for the object that contains the presentation
     var slideMasterOptions = [
         {
             key: "letterbox",
@@ -23,7 +26,29 @@
             type: "number",
             default: 500
         }
-    ];
+    //Settings for objects in the presentation
+    ],  presentationObjectOptions = [
+        {
+            key: "anim",
+            type: function(val) {
+                if (val === "") {
+                    return animations.default;
+                }
+            },
+            default: null
+        }
+    //Kinds of animation, for that beauty and stuff
+    ],  animations = {
+        default: {
+            in: function(elem) {
+                $(elem).css('visibility', 'visible');
+            },
+            out: function(elem) {
+                $(elem).css('visibility', 'hidden');
+            }
+        }
+    }, animationQueue = [];
+    
     
     // Takes a string seperated by hyphens (default) and converts it to camel case
     function toCamelCase(str, seperator) {
@@ -135,5 +160,22 @@
         
         this.children("*").appendTo(container);
         container.appendTo(this);
+        var addChildren = function() {
+            var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
+            if (options.anim) {
+                elem.css('visibility', 'hidden');
+                animationQueue.push(function() {
+                    console.log(options.anim.in);
+                    options.anim.in(elem);
+                });
+            }
+            $(this).children().each(addChildren);
+        }
+        container.children().each(addChildren);
+        $(window).keypress(function() {
+            animationQueue.shift()();
+        });
     };
+
 }(jQuery));
+
