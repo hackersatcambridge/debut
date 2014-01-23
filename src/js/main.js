@@ -27,28 +27,49 @@
             default: 500
         }
     //Settings for objects in the presentation
-    ],  presentationObjectOptions = [
+    ];
+    var presentationObjectOptions = [
         {
             key: "anim",
             type: function(val) {
                 if (val === "") {
-                    return animations.default;
+                    return animations.appear;
+                }
+            },
+            default: null
+        },
+        {
+            key: "end-exit-all",
+            type: "boolean",
+            default: false
+        },
+        {
+            key: "end-exit",
+            type: function(val) {
+                if (val === "") {
+                    return animations.appear;
                 }
             },
             default: null
         }
+    ];
     //Kinds of animation, for that beauty and stuff
-    ],  animations = {
-        default: {
-            in: function(elem) {
+    var animations = {
+        appear: {
+            in: function(elem, duration, callback) {
                 $(elem).css('visibility', 'visible');
             },
-            out: function(elem) {
+            out: function(elem, duration, callback) {
                 $(elem).css('visibility', 'hidden');
             }
+        },
+        slideLeft: {
+            
         }
     }, animationQueue = [];
     
+ 
+    // Sliding function for use in the slide animations
     
     // Takes a string seperated by hyphens (default) and converts it to camel case
     function toCamelCase(str, seperator) {
@@ -91,6 +112,8 @@
                                 val = parseFloat(attr);
                                 if (!isNaN(val)) {
                                     options[key] = val;
+                                } else if (attr === "") {
+                                    options[key] = 0;
                                 }
                                 break;
                             //If it's a string, just set it directly (is also the default type)
@@ -165,15 +188,46 @@
             if (options.anim) {
                 elem.css('visibility', 'hidden');
                 animationQueue.push(function() {
-                    console.log(options.anim.in);
                     options.anim.in(elem);
                 });
             }
             $(this).children().each(addChildren);
+            if (options.endExitAll) {
+                var queue = [];
+                $(this).children().each(function(key, val) {
+                    childrenExit(queue, val);
+                });
+                animationQueue.push(queue);
+            } else if (options.endExit) {
+                animationQueue.push(function() {
+                    options.endExit.out(elem)
+                });
+            }
+        }, childrenExit = function(queue, elem) {
+            var options = $(elem).getDOMOptions(presentationObjectOptions), elem = $(elem);
+            console.log("Child: ", elem);
+            if (options.anim) {
+                queue.push(function() {
+                    options.anim.out(elem);
+                });
+            }
+            $(this).children().each(function(key, val) {
+                childrenExit(queue, val);
+            });
         }
         container.children().each(addChildren);
         $(window).keypress(function() {
-            animationQueue.shift()();
+            var fun = animationQueue.shift();
+            if (typeof fun === "function") {
+                fun();
+            } else if (typeof fun === "object") {
+                $(fun).each(function (key, val) {
+                    val();
+                });
+            } else {
+                console.log(typeof fun);
+                throw new Error("Bad animation thingie");
+            }
         });
     };
 

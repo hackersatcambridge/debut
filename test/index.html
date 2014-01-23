@@ -9,21 +9,27 @@
 
         <link rel="stylesheet" href="css/normalize.min.css" />
         <link rel="stylesheet" href="css/main.css" />
-        <link rel="stylesheet" href="css/oliver-and-swan.css" />
+        <link rel="stylesheet" href="css/oliver-and-swan.min.css" />
         <script src="js/vendor/modernizr-2.6.2.min.js"></script>
     </head>
     <body>
         <!-- Sometimes you may have other things on the page as well as the presentation, the master is where it all starts. You may size it how you wish -->
         <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3">
-            <div data-anim>Put this in</div>
-            <div data-anim>Put this in!</div>
-            <div>This starts on</div>
+            <div data-end-exit>
+                <div data-anim>Put this in</div>
+                <div data-anim>Put this in!</div>
+                <div>This starts on</div>
+            </div>
+            <div>
+                <div data-anim>Then this</div>
+                <div data-anim>And this</div>
+            </div>
         </div>
         
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
         <script src="js/vendor/jquery.transit.js"></script>
-        <script src="js/oliver-and-swan.js"></script>
+        <script src="js/oliver-and-swan.min.js"></script>
         <script type="application/javascript">
             $(document).ready(function() {
                 $("#presentation-master").present();
