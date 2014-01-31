@@ -1,26 +1,40 @@
 module.exports = function(grunt) {
 
   // Project configuration.
+    
+    var jsFiles = {
+        'build/oliver-and-swan.min.js': ['src/js/jquery.transit.js', 'src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'],
+        'build/oliver-and-swan.notransit.min.js': ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js']
+    };
+    var cssFiles = {
+        'build/oliver-and-swan.min.css': ['src/css/main.css']
+    };
+    
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         uglify: {
             options: {
                 banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
-                wrap: true
+                wrap: true,
             },
-            build: {
-                files: {
-                    'build/oliver-and-swan.min.js': ['src/js/jquery.transit.js', 'src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'],
-                    'build/oliver-and-swan.notransit.min.js': ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js']
+            dev: {
+                files: jsFiles,
+                options: {
+                    beautify: true,
+                    mangle: false
                 }
                 
+            },
+            build: {
+                files: jsFiles
             }
         },
         stylus: {
             build: {
-                files: {
-                    'build/oliver-and-swan.min.css': ['src/css/main.css']
-                }
+                files: cssFiles
+            },
+            dev: {
+                files: cssFiles
             }
         },
         copy: {
@@ -30,6 +44,10 @@ module.exports = function(grunt) {
                     'test/js/oliver-and-swan.min.js': ['build/oliver-and-swan.min.js']
                 }
             }
+        },
+        watch: {
+            files: ['src/**'],
+            tasks: ['dev']
         }
     });
 
@@ -37,8 +55,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     // Default task(s).
-    grunt.registerTask('default', ['uglify:build', 'stylus:build', 'copy:totest']);
+    grunt.registerTask('dev', ['uglify:dev', 'stylus:dev', 'copy:totest']);
+    grunt.registerTask('build', ['uglify:build', 'stylus:build', 'copy:totest']);
+    grunt.registerTask('default', ['build']);
 
 };
