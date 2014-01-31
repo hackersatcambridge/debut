@@ -33,7 +33,7 @@ var presentationObjectOptions = [
         default: null
     },
     {
-        key: "end-exit-all",
+        key: "end-exit-children",
         type: "boolean",
         default: false
     },
@@ -97,9 +97,9 @@ $.fn.getDOMOptions = function (template) {
                             break;
                         //Animation allows you to set attributes in JSON format
                         case "animation":
-                            var anim = attr, parsed = attr ? attr.match(/([^{]*)(.*)/) : null, params = {}
+                            var anim = attr, parsed = attr ? attr.match(/([^{]*){(.+)/) : null, params = {}
                             if (parsed) {
-                                params = eval('(' + parsed[2] + ')');
+                                params = eval('({' + parsed[2] + ')');
                                 anim = parsed[1];
                             }
                             if (!(anim in animations)) {
@@ -183,14 +183,14 @@ $.fn.present = function (options) {
     var addChildren = function() {
         var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
         if (options.anim) {
-            elem.css('visibility', 'hidden');
+            elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
             animationQueue.push(function() {
                 options.anim.run(elem, context, function() { });
             });
         }
         $(this).children().each(addChildren);
-        if (options.endExitAll) {
+        if (options.endExitChildren) {
             var queue = [];
             $(this).children().each(function(key, val) {
                 childrenExit(queue, val);
@@ -205,11 +205,14 @@ $.fn.present = function (options) {
     }, childrenExit = function(queue, elem) {
         var options = $(elem).getDOMOptions(presentationObjectOptions);
         elem = $(elem);
-        if (options.anim) {
-            options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
+        if ((options.anim) || (!options.exit)) {
+            options.exit = $.extend(true, new Animation(), options.anim)
+        }
+        if (options.exit) {
+            options.exit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.exit.params);
             
             queue.push(function() {
-                options.anim.run(elem, context, function() { });
+                options.exit.run(elem, context, function() { });
             });
         }
         $(this).children().each(function(key, val) {
