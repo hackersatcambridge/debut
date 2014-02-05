@@ -11,6 +11,12 @@ var animations = {
         //This animation has the object slide in (or out) from a particular side of the screen
         var leftShift = 0, topShift = 0;
         params = $.extend({side: "left"}, params);
+        
+        //Resets the object to its original position if going forwards
+        //TODO: measure some sort of initial state and use this in case the object already uses translate x and y
+        if (params.direction === 1) {
+            $(elem).css({x: 0, y: 0});
+        }
         $(elem).css('opacity', 1);
         switch(params.side) {
             default:
@@ -36,9 +42,19 @@ var animations = {
     }
 }
 
-var Animation = function(fun, params) {
+function Animation(fun, params) {
     this.params = params;
-    this.run = function(elem, context, callback) {
-        fun(elem, context, this.params, callback);
+    console.log(this.constructor.name);
+    //Valid values for start are onstep, withprevious and afterprevious
+    this.start = "onstep";
+    this.delay = 0;
+    this._elem = null;
+    this.run = function(context, reverse) {
+        var nparams = this.params;
+        if (reverse) {
+            nparams = $.extend({}, this.params, {direction: -this.params.direction});
+        }
+        console.log(nparams.direction);
+        fun(this._elem, context, nparams, function() { });
     }
 }

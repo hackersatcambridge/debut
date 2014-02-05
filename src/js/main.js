@@ -48,7 +48,7 @@ var presentationObjectOptions = [
 var OliverAndSwan = function() {
     this.innerContainer = null;
     this.outerContainer = null;
-}
+};
 
 // Takes a string seperated by hyphens (default) and converts it to camel case
 function toCamelCase(str, seperator) {
@@ -97,7 +97,7 @@ $.fn.getDOMOptions = function (template) {
                             break;
                         //Animation allows you to set attributes in JSON format
                         case "animation":
-                            var anim = attr, parsed = attr ? attr.match(/([^{]*){(.+)/) : null, params = {}
+                            var anim = attr, parsed = attr ? attr.match(/([^{]*){(.+)/) : null, params = {};
                             if (parsed) {
                                 params = eval('({' + parsed[2] + ')');
                                 anim = parsed[1];
@@ -139,6 +139,7 @@ $.fn.getDOMOptions = function (template) {
 
 //Where all the magic happpens
 $.fn.present = function (options) {
+    //TODO: Put all of this into the OliverAndSwan object
     var container = $('<div class="presentation-container"></div>'),
         slideMaster = this,
         domOptions = this.getDOMOptions(slideMasterOptions),
@@ -185,9 +186,8 @@ $.fn.present = function (options) {
         if (options.anim) {
             elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
-            animationQueue.push(function() {
-                options.anim.run(elem, context, function() { });
-            });
+            options.anim._elem = elem;
+            animationQueue.push(options.anim);
         }
         $(this).children().each(addChildren);
         if (options.endExitChildren) {
@@ -198,39 +198,58 @@ $.fn.present = function (options) {
             animationQueue.push(queue);
         } else if (options.endExit) {
             options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
-            animationQueue.push(function() {
-                options.endExit.run(elem, context, function() { })
-            });
+            options.endExit._elem = elem;
+            animationQueue.push(options.endExit);
         }
     }, childrenExit = function(queue, elem) {
         var options = $(elem).getDOMOptions(presentationObjectOptions);
         elem = $(elem);
         if ((options.anim) || (!options.exit)) {
-            options.exit = $.extend(true, new Animation(), options.anim)
+            options.exit = $.extend(true, new Animation(), options.anim);
         }
         if (options.exit) {
             options.exit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.exit.params);
-            
-            queue.push(function() {
-                options.exit.run(elem, context, function() { });
-            });
+            options.exit._elem = elem;
+            queue.push(options.exit);
         }
         $(this).children().each(function(key, val) {
             childrenExit(queue, val);
         });
     }
     container.children().each(addChildren);
-    $(window).keypress(function() {
-        var fun = animationQueue.shift();
-        if (typeof fun === "function") {
-            fun();
-        } else if (typeof fun === "object") {
-            $(fun).each(function (key, val) {
-                val();
-            });
-        } else {
-            throw new Error("Bad animation thingie");
+    var ind = 0;
+    $(window).keydown(function(e) {
+        //39 is right, 37 is left
+        
+        if ((e.which === 39) || (e.which === 37)) {
+            var fun, type, reverse = (e.which === 37);
+            if (reverse) {
+                if (ind <= 0) {
+                    return;
+                }
+                ind -= 1;
+            } else if (ind >= animationQueue.length) {
+                return;
+            }
+            fun = animationQueue[ind];
+            type = fun.constructor.name;
+            if (type === "Animation") {
+                fun.run(context, reverse);
+            } else if (type === "Array") {
+                $(fun).each(function (key, val) {
+                    val.run(context, reverse);
+                });
+            } else {
+                //
+                throw new Error("Unsupported animation type");
+            }
+            
+            if (!reverse) {
+                
+                ind += 1;
+            }
         }
+        
     });
 };
 
