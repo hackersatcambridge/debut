@@ -45,9 +45,135 @@ var presentationObjectOptions = [
 ], animationQueue = [];
 
 
-var OliverAndSwan = function() {
+var OliverAndSwan = function(outerContainer, options) {
     this.innerContainer = null;
     this.outerContainer = null;
+    this.index = 0;
+    
+    
+    //TODO: Put all of this into the OliverAndSwan object
+    var container = $('<div class="presentation-container"></div>'),
+        slideMaster = outerContainer,
+        domOptions = $(outerContainer).getDOMOptions(slideMasterOptions),
+        containerHeight,
+        containerWidth,
+        i, masterWidth, masterHeight, $this = this;
+    $(outerContainer).addClass("slide-master");
+    options = $.extend({ }, domOptions, options);
+    
+    containerHeight = options.containerHeight;
+    containerWidth = containerHeight * options.aspectRatio;
+    container.height(containerHeight);
+    container.width(containerWidth);
+    container.css("transform-origin", "0 0");
+    
+    $(window).resize(function(e) {
+        var ratio, scale;
+        if ((slideMaster.width() != masterWidth) || (slideMaster.height() != masterHeight)) {
+            masterWidth = slideMaster.width();
+            masterHeight = slideMaster.height();
+            ratio = masterWidth / masterHeight;
+            //If the viewport is wider, scale according to height
+            if (ratio > options.aspectRatio) {
+                scale = masterHeight / containerHeight;
+                container.css({left: (masterWidth - scale * containerWidth) / 2, top: 0});
+            } else {
+                scale = masterWidth / containerWidth;
+                container.css({left: 0, top: (masterHeight - scale * containerHeight) / 2});
+            }
+            
+            container.css("scale", scale);
+        }
+    });
+    
+    $(outerContainer).children("*").appendTo(container);
+    container.appendTo(outerContainer);
+    
+    this.outerContainer = outerContainer;
+    this.innerContainer = container;
+    
+    var addChildren = function() {
+        var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
+        if (options.anim) {
+            elem.css('opacity', 0);
+            options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
+            options.anim._elem = elem;
+            animationQueue.push(options.anim);
+        }
+        $(this).children().each(addChildren);
+        if (options.endExitChildren) {
+            var queue = [];
+            $(this).children().each(function(key, val) {
+                childrenExit(val, true);
+            });
+            //animationQueue.push(queue);
+        } else if (options.endExit) {
+            options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
+            options.endExit._elem = elem;
+            animationQueue.push(options.endExit);
+        }
+    }, childrenExit = function(elem, top) {
+        var options = $(elem).getDOMOptions(presentationObjectOptions);
+        elem = $(elem);
+        console.log(elem);
+        if ((options.anim) && (!options.exit)) {
+            options.exit = $.extend(true, new Animation(), options.anim);
+        }
+        if (options.exit) {
+            options.exit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.exit.params);
+            options.exit._elem = elem;
+            options.exit.start = elem.index() !== 0 ? "withprevious" : "onstep";
+            animationQueue.push(options.exit);
+        }
+        /*$(this).children().each(function(key, val) {
+            childrenExit(val, false);
+        });*/
+    };
+    this.innerContainer.children().each(addChildren);
+    $(window).keydown(function(e) {
+        //39 is right, 37 is left
+        
+        if ((e.which === 39) || (e.which === 37)) {
+            $this.proceed(e.which === 37);
+        }
+        
+    });
+    
+    this.proceed = function(reverse) {
+        var fun, type, nextind;
+        
+        reverse = !!reverse;
+        
+        if (reverse) {
+            if ($this.index <= 0) {
+                return;
+            }
+            $this.index -= 1;
+        } else if ($this.index >= animationQueue.length) {
+            return;
+        }
+        
+        fun = animationQueue[$this.index];
+        type = fun.constructor.name;
+        if (type === "Animation") {
+            fun.run($this, reverse);
+        } else {
+            throw new Error("Only Animation objects can be in here");
+        }
+        
+        if (!reverse) {
+            $this.index += 1;
+        }
+        
+        //nextind = $this.index + reverse ? -1 : 0;
+        
+        if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
+            setTimeout(function() { $this.proceed(reverse) }, fun.delay);
+        }
+        
+        
+    }
+    
 };
 
 // Takes a string seperated by hyphens (default) and converts it to camel case
@@ -97,10 +223,23 @@ $.fn.getDOMOptions = function (template) {
                             break;
                         //Animation allows you to set attributes in JSON format
                         case "animation":
-                            var anim = attr, parsed = attr ? attr.match(/([^{]*){(.+)/) : null, params = {};
+                            var anim = attr, parsed = attr ? attr.match(/([^{]+){([\s\S]+)/m) : null, params = {};
                             if (parsed) {
+                                //There really isn't any risk of using eval when it's the source code of a page being eval'd
+                                //If you don't like it, tell me about a better alternative
                                 params = eval('({' + parsed[2] + ')');
                                 anim = parsed[1];
+                            } else {
+                                //Checking if there is inline JS code in there
+                                parsed = attr ? attr.match(/^{([\s\S]*)}$/m) : null;
+                                if (parsed) {
+                                    //Save the inline code in a function so it is already parsed but not executed
+                                    //This saves processing time when actually running the animation
+                                    console.log(parsed[1]);
+                                    var fun = eval('(function(elem,context,params,callback) {' + parsed[1] + '})');
+                                    options[key] = new Animation(fun, params);
+                                    break;
+                                }
                             }
                             if (!(anim in animations)) {
                                 options[key] = new Animation(animations.appear, params);
@@ -139,117 +278,6 @@ $.fn.getDOMOptions = function (template) {
 
 //Where all the magic happpens
 $.fn.present = function (options) {
-    //TODO: Put all of this into the OliverAndSwan object
-    var container = $('<div class="presentation-container"></div>'),
-        slideMaster = this,
-        domOptions = this.getDOMOptions(slideMasterOptions),
-        containerHeight,
-        containerWidth,
-        i, masterWidth, masterHeight,
-        context = new OliverAndSwan();
-    this.addClass("slide-master");
-    options = $.extend({ }, domOptions, options);
-    
-    containerHeight = options.containerHeight;
-    containerWidth = containerHeight * options.aspectRatio;
-    container.height(containerHeight);
-    container.width(containerWidth);
-    container.css("transform-origin", "0 0");
-    
-    $(window).resize(function(e) {
-        var ratio, scale;
-        if ((slideMaster.width() != masterWidth) || (slideMaster.height() != masterHeight)) {
-            masterWidth = slideMaster.width();
-            masterHeight = slideMaster.height();
-            ratio = masterWidth / masterHeight;
-            //If the viewport is wider, scale according to height
-            if (ratio > options.aspectRatio) {
-                scale = masterHeight / containerHeight;
-                container.css({left: (masterWidth - scale * containerWidth) / 2, top: 0});
-            } else {
-                scale = masterWidth / containerWidth;
-                container.css({left: 0, top: (masterHeight - scale * containerHeight) / 2});
-            }
-            
-            container.css("scale", scale);
-        }
-    });
-    
-    this.children("*").appendTo(container);
-    container.appendTo(this);
-    
-    context.outerContainer = $(this);
-    context.innerContainer = container;
-    
-    var addChildren = function() {
-        var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
-        if (options.anim) {
-            elem.css('opacity', 0);
-            options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
-            options.anim._elem = elem;
-            animationQueue.push(options.anim);
-        }
-        $(this).children().each(addChildren);
-        if (options.endExitChildren) {
-            var queue = [];
-            $(this).children().each(function(key, val) {
-                childrenExit(queue, val);
-            });
-            animationQueue.push(queue);
-        } else if (options.endExit) {
-            options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
-            options.endExit._elem = elem;
-            animationQueue.push(options.endExit);
-        }
-    }, childrenExit = function(queue, elem) {
-        var options = $(elem).getDOMOptions(presentationObjectOptions);
-        elem = $(elem);
-        if ((options.anim) || (!options.exit)) {
-            options.exit = $.extend(true, new Animation(), options.anim);
-        }
-        if (options.exit) {
-            options.exit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.exit.params);
-            options.exit._elem = elem;
-            queue.push(options.exit);
-        }
-        $(this).children().each(function(key, val) {
-            childrenExit(queue, val);
-        });
-    }
-    container.children().each(addChildren);
-    var ind = 0;
-    $(window).keydown(function(e) {
-        //39 is right, 37 is left
-        
-        if ((e.which === 39) || (e.which === 37)) {
-            var fun, type, reverse = (e.which === 37);
-            if (reverse) {
-                if (ind <= 0) {
-                    return;
-                }
-                ind -= 1;
-            } else if (ind >= animationQueue.length) {
-                return;
-            }
-            fun = animationQueue[ind];
-            type = fun.constructor.name;
-            if (type === "Animation") {
-                fun.run(context, reverse);
-            } else if (type === "Array") {
-                $(fun).each(function (key, val) {
-                    val.run(context, reverse);
-                });
-            } else {
-                //
-                throw new Error("Unsupported animation type");
-            }
-            
-            if (!reverse) {
-                
-                ind += 1;
-            }
-        }
-        
-    });
+    new OliverAndSwan($(this), options);
 };
 

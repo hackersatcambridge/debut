@@ -44,7 +44,7 @@ var animations = {
 
 function Animation(fun, params) {
     this.params = params;
-    console.log(this.constructor.name);
+    this.fun = fun;
     //Valid values for start are onstep, withprevious and afterprevious
     this.start = "onstep";
     this.delay = 0;
@@ -54,7 +54,7 @@ function Animation(fun, params) {
         if (reverse) {
             nparams = $.extend({}, this.params, {direction: -this.params.direction});
         }
-        console.log(nparams.direction);
-        fun(this._elem, context, nparams, function() { });
+        console.log(this);
+        this.fun(this._elem, context, nparams, function() { });
     }
 }
