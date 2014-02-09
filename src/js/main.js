@@ -149,6 +149,10 @@ var OliverAndSwan = function(outerContainer, options) {
         
     });
     
+    $(this.outerContainer).click(function(e) {
+        $this.proceed();
+    });
+    
     this.proceed = function(reverse) {
         var fun, type, nextind;
         
