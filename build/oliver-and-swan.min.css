@@ -1,3 +1,4 @@
 .full{position:absolute;left:0;top:0;height:100%;width:100%}
-.presentation-container{position:absolute;background-color:#fff;left:0;top:0}
-.slide-master{background-color:#000;overflow:hidden}
+.presentation-master{background-color:#000;overflow:hidden;}
+.presentation-master .presentation-container{position:absolute;background-color:#fff;left:0;top:0}
+.presentation-master.letterbox .presentation-container{overflow:hidden}

@@ -60,6 +60,13 @@ textarea {
    Author's custom styles
    ========================================================================== */
 
+html,
+button,
+input,
+select,
+textarea {
+    font-family: 'Open Sans', sans-serif;
+}
 
 
 

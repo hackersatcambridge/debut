@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         'build/oliver-and-swan.notransit.min.js': ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js']
     };
     var cssFiles = {
-        'build/oliver-and-swan.min.css': ['src/css/main.css']
+        'build/oliver-and-swan.min.css': ['src/css/main.styl']
     };
     
     grunt.initConfig({

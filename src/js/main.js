@@ -58,7 +58,7 @@ var OliverAndSwan = function(outerContainer, options) {
         containerHeight,
         containerWidth,
         i, masterWidth, masterHeight, $this = this;
-    $(outerContainer).addClass("slide-master");
+    $(outerContainer).addClass("presentation-master");
     options = $.extend({ }, domOptions, options);
     
     containerHeight = options.containerHeight;
@@ -67,7 +67,9 @@ var OliverAndSwan = function(outerContainer, options) {
     container.width(containerWidth);
     container.css("transform-origin", "0 0");
     
-    $(window).resize(function(e) {
+    
+    
+    this.resize = function(e) {
         var ratio, scale;
         if ((slideMaster.width() != masterWidth) || (slideMaster.height() != masterHeight)) {
             masterWidth = slideMaster.width();
@@ -84,13 +86,22 @@ var OliverAndSwan = function(outerContainer, options) {
             
             container.css("scale", scale);
         }
-    });
+    }
+    
+    $(window).resize(this.resize);
+    this.resize();
     
     $(outerContainer).children("*").appendTo(container);
     container.appendTo(outerContainer);
     
-    this.outerContainer = outerContainer;
+    this.outerContainer = $(outerContainer);
     this.innerContainer = container;
+    
+    
+    if (options.letterbox) {
+        console.log(options);
+        $(this.outerContainer).addClass("letterbox");
+    }
     
     var addChildren = function() {
         var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
@@ -115,7 +126,6 @@ var OliverAndSwan = function(outerContainer, options) {
     }, childrenExit = function(elem, top) {
         var options = $(elem).getDOMOptions(presentationObjectOptions);
         elem = $(elem);
-        console.log(elem);
         if ((options.anim) && (!options.exit)) {
             options.exit = $.extend(true, new Animation(), options.anim);
         }
@@ -155,11 +165,7 @@ var OliverAndSwan = function(outerContainer, options) {
         
         fun = animationQueue[$this.index];
         type = fun.constructor.name;
-        if (type === "Animation") {
-            fun.run($this, reverse);
-        } else {
-            throw new Error("Only Animation objects can be in here");
-        }
+        fun.run($this, reverse);
         
         if (!reverse) {
             $this.index += 1;
@@ -197,7 +203,6 @@ $.fn.getDOMOptions = function (template) {
     for (i in template) {
         key = toCamelCase(template[i].key);
         attr = this.attr("data-" + template[i].key);
-        console.log(key + ": " + attr);
         if (typeof attr !== "undefined") {
             type = template[i].type;
             switch (typeof type) {
