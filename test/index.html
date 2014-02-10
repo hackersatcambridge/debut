@@ -16,14 +16,23 @@
     <body>
         <!-- Sometimes you may have other things on the page as well as the presentation, the master is where it all starts. You may size it how you wish -->
         <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3">
-            <div data-end-exit-children="slide">
-                <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
-                <div data-anim>Put this in!</div>
-                <div>This starts on</div>
+            <div data-end-exit="slide{side:'top',duration:1500}">
+                <div data-end-exit-children="slide">
+                    <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
+                    <div data-anim>Put this in!</div>
+                    <div>This starts on</div>
+                </div>
+                <div>
+                    <div data-anim>Then this</div>
+                    <div data-anim="{if(params.direction === 1)$('*').css('background','blue'); else $('*').css('background', ''); callback();}">And this</div>
+                </div>
             </div>
             <div>
-                <div data-anim>Then this</div>
-                <div data-anim="{if(params.direction === 1)$('*').css('background','blue'); else $('*').css('background', ''); callback();}">And this</div>
+                <ul data-anim-children-step>
+                    <li>These should appear</li>
+                    <li>Automatically</li>
+                    <li>Derp</li>
+                </ul>
             </div>
         </div>
         

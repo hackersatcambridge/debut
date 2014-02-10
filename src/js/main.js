@@ -41,6 +41,11 @@ var presentationObjectOptions = [
         key: "end-exit",
         type: "animation",
         default: null
+    },
+    {
+        key: "anim-children-step",
+        type: "animation",
+        default: null
     }
 ], animationQueue = [];
 
@@ -111,7 +116,19 @@ var OliverAndSwan = function(outerContainer, options) {
             options.anim._elem = elem;
             animationQueue.push(options.anim);
         }
+        
+        if (options.animChildrenStep) {
+            
+            $(this).children().each(function(key, val) {
+                
+                if (($(val).attr("data-anim") === undefined) || ($(val).attr("data-anim") === false)) {
+                    $(val).attr("data-anim", elem.attr("data-anim-children-step"));
+                }
+            });
+        }
+        
         $(this).children().each(addChildren);
+        
         if (options.endExitChildren) {
             var queue = [];
             $(this).children().each(function(key, val) {
