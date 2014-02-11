@@ -2,10 +2,8 @@ module.exports = function(grunt) {
 
   // Project configuration.
     
-    var jsFiles = {
-        'build/oliver-and-swan.min.js': ['src/js/jquery.transit.js', 'src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'],
-        'build/oliver-and-swan.notransit.min.js': ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js']
-    };
+    var jsFiles = ['src/js/jquery.transit.js', 'src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'],
+        jsFilesNoTransit = ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'];
     var cssFiles = {
         'build/oliver-and-swan.min.css': ['src/css/main.styl']
     };
@@ -18,15 +16,22 @@ module.exports = function(grunt) {
                 wrap: true,
             },
             dev: {
-                files: jsFiles,
+                files: {
+                    'build/oliver-and-swan.js': jsFiles,
+                    'build/oliver-and-swan.notransit.js': jsFilesNoTransit
+                },
                 options: {
                     beautify: true,
-                    mangle: false
+                    mangle: false,
+                    preserveComments: 'all'
                 }
                 
             },
             build: {
-                files: jsFiles
+                files: {
+                    'build/oliver-and-swan.min.js': jsFiles,
+                    'build/oliver-and-swan.notransit.min.js': jsFilesNoTransit
+                }
             }
         },
         stylus: {
@@ -41,13 +46,13 @@ module.exports = function(grunt) {
             totest: {
                 files: {
                     'test/css/oliver-and-swan.min.css': ['build/oliver-and-swan.min.css'],
-                    'test/js/oliver-and-swan.min.js': ['build/oliver-and-swan.min.js']
+                    'test/js/oliver-and-swan.js': ['build/oliver-and-swan.js']
                 }
             }
         },
         watch: {
             files: ['src/**'],
-            tasks: ['dev']
+            tasks: ['dev', 'build']
         }
     });
 
@@ -59,7 +64,7 @@ module.exports = function(grunt) {
 
     // Default task(s).
     grunt.registerTask('dev', ['uglify:dev', 'stylus:dev', 'copy:totest']);
-    grunt.registerTask('build', ['uglify:build', 'stylus:build', 'copy:totest']);
-    grunt.registerTask('default', ['build']);
+    grunt.registerTask('build', ['uglify:build', 'stylus:build']);
+    grunt.registerTask('default', ['dev', 'build']);
 
 };

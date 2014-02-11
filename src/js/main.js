@@ -200,7 +200,11 @@ var OliverAndSwan = function(outerContainer, options) {
         //nextind = $this.index + reverse ? -1 : 0;
         
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
-            setTimeout(function() { $this.proceed(reverse) }, fun.delay);
+            if (fun.delay === 0) {
+                $this.proceed(reverse);
+            } else {
+                setTimeout(function() { $this.proceed(reverse) }, fun.delay);
+            }
         }
         
         

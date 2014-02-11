@@ -21,4 +21,5 @@
 *.rtf	 diff=astextplain
 *.RTF	 diff=astextplain
 
-build/** binary
+oliver-and-swan.min.js binary
+oliver-and-swan.min.css binary
