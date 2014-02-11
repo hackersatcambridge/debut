@@ -19,8 +19,8 @@
             <div data-end-exit="slide{side:'top',duration:1500}">
                 <div data-end-exit-children="slide">
                     <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
-                    <div data-anim>Put this in!</div>
-                    <div>This starts on</div>
+                    <div style="position: absolute; left: 50px; top: 100px;" data-anim="slide{side:'right'}">Absolutely positioned element</div>
+                    <div data-anim="appear{start:'withprevious'}">This should appear with the previous</div>
                 </div>
                 <div>
                     <div data-anim>Then this</div>

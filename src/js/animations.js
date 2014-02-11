@@ -18,26 +18,32 @@ var animations = {
             $(elem).css({x: 0, y: 0});
         }
         $(elem).css('opacity', 1);
+        
+        //The position given by $.fn.offset is scaled so we have to account for that
+        var position = $(elem).offset();
+        position.left = (position.left - context.containerLeft) / context.scale;
+        position.top = (position.top - context.containerTop) / context.scale;
+        
         switch(params.side) {
             default:
             case "left":
-                leftShift = -($(elem).width() + $(elem).offset().left - context.innerContainer.offset().left);
+                leftShift = -($(elem).width() + position.left);
             break;
             case "right":
-                leftShift = context.innerContainer.width() - ($(elem).offset().left - context.innerContainer.offset().left);
+                leftShift = context.containerWidth - position.left;
             break;
             case "top":
-                topShift = -($(elem).height() + $(elem).offset().top - context.innerContainer.offset().top);
+                topShift = -($(elem).height() + position.top);
             break;
             case "bottom":
-                topShift = context.innerContainer.height() - ($(elem).offset().top - context.innerContainer.offset().top);
+                topShift = context.innerContainer.height() - position.top;
             break;
         }
         
         if (params.direction === 1) {
             $(elem).css({"x": "+=" + (params.direction * leftShift), "y": "+=" + (params.direction * topShift)});
         }
-        console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
+        //console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
         $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, params.callback);
     }
 }

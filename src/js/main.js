@@ -66,12 +66,14 @@ var OliverAndSwan = function(outerContainer, options) {
     $(outerContainer).addClass("presentation-master");
     options = $.extend({ }, domOptions, options);
     
-    containerHeight = options.containerHeight;
-    containerWidth = containerHeight * options.aspectRatio;
-    container.height(containerHeight);
-    container.width(containerWidth);
+    this.containerHeight = options.containerHeight;
+    this.containerWidth = this.containerHeight * options.aspectRatio;
+    this.scale = 1;
+    container.height(this.containerHeight);
+    container.width(this.containerWidth);
     container.css("transform-origin", "0 0");
-    
+    this.containerLeft = 0;
+    this.containerTop = 0;
     
     
     this.resize = function(e) {
@@ -82,14 +84,17 @@ var OliverAndSwan = function(outerContainer, options) {
             ratio = masterWidth / masterHeight;
             //If the viewport is wider, scale according to height
             if (ratio > options.aspectRatio) {
-                scale = masterHeight / containerHeight;
-                container.css({left: (masterWidth - scale * containerWidth) / 2, top: 0});
+                $this.scale = masterHeight / $this.containerHeight;
+                $this.containerLeft = (masterWidth - $this.scale * $this.containerWidth) / 2;
+                $this.containerTop = 0;
             } else {
-                scale = masterWidth / containerWidth;
-                container.css({left: 0, top: (masterHeight - scale * containerHeight) / 2});
+                $this.scale = masterWidth / $this.containerWidth;
+                $this.containerLeft = 0;
+                $this.containerTop = (masterHeight - $this.scale * $this.containerHeight) / 2;
             }
             
-            container.css("scale", scale);
+            container.css({left: $this.containerLeft, top: $this.containerTop});
+            container.css("scale", $this.scale);
         }
     }
     
@@ -250,13 +255,14 @@ $.fn.getDOMOptions = function (template) {
                         //Animation allows you to set attributes in JSON format
                         case "animation":
                             var anim = attr, parsed = attr ? attr.match(/([^{]+){([\s\S]+)/m) : null, params = {};
+                            //TODO: Allow the passing of parameters to inline animations
                             if (parsed) {
                                 //There really isn't any risk of using eval when it's the source code of a page being eval'd
                                 //If you don't like it, tell me about a better alternative
                                 params = eval('({' + parsed[2] + ')');
                                 anim = parsed[1];
                             } else {
-                                //Checking if there is inline JS code in there
+                            //Checking if there is inline JS code in there
                                 parsed = attr ? attr.match(/^{([\s\S]*)}$/m) : null;
                                 if (parsed) {
                                     //Save the inline code in a function so it is already parsed but not executed
@@ -271,6 +277,9 @@ $.fn.getDOMOptions = function (template) {
                                 options[key] = new Animation(animations.appear, params);
                             } else {
                                 options[key] = new Animation(animations[anim], params);
+                                if (params.start) {
+                                    options[key].start = params.start;
+                                }
                             }
                             break;
                         //If it's a string, just set it directly (is also the default type)
