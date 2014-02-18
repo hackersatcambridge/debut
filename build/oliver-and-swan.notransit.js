@@ -1,4 +1,4 @@
-/*! oliver-and-swan 2014-02-18 */
+/*! oliver-and-swan 2014-02-19 */
 !function(exports, global) {
     function Animation(fun, params) {
         this.params = $.extend({
@@ -33,11 +33,10 @@
                 side: "left"
             }, params), //Resets the object to its original position if going forwards
             //TODO: measure some sort of initial state and use this in case the object already uses translate x and y
-            1 === params.direction && params.domClone && (console.log("Reverseidom", params.domClone), 
-            $(elem).css({
+            1 === params.direction && params.domClone && $(elem).css({
                 x: $(params.domClone).css("x"),
                 y: $(params.domClone).css("y")
-            })), $(elem).css("opacity", 1);
+            }), $(elem).css("opacity", 1);
             //The position given by $.fn.offset is scaled so we have to account for that
             var position = $(elem).offset();
             switch (position.left = (position.left - context.containerLeft) / context.scale, 
@@ -67,10 +66,13 @@
                 y: "+=" + -params.direction * topShift
             }, params.duration, params.easing, params.callback);
         },
-        slideTo: function(elem, context, params) {
+        animate: function(elem, context, params) {
             var toGo = {};
-            1 === params.direction ? (params.x && (toGo.x = params.x), params.y && (toGo.y = params.y)) : (toGo.x = $(params.domClone).css("x"), 
-            toGo.y = $(params.domClone).css("y")), $(elem).transit(toGo, params.duration, params.easing, params.callback);
+            if (1 === params.direction) toGo = params.prop; else {
+                var e = $(params.domClone);
+                for (var i in params.prop) toGo[i] = e.css(i);
+            }
+            $(elem).transit(toGo, params.duration, params.easing, params.callback);
         }
     }, slideMasterOptions = [ {
         key: "letterbox",

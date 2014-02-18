@@ -23,7 +23,8 @@
                     <div data-anim="appear{start:'withprevious'}">This should appear with the previous</div>
                     <div data-end-exit="slide{to:'#slideTo'}">This should go to</div>
                     <div id="slideTest" data-anim="appear{start:'withprevious'}" id="slideTo">This!</div>
-                    <div data-anim="slideTo{x:50,on:'#slideTest'}"></div>
+                    <div data-anim="animate{prop:{x:50},on:'#slideTest'}"></div>
+                    <div data-anim="animate{prop:{opacity:1}}">Hi</div>
                 </div>
                 <div>
                     <div data-anim>Then this</div>

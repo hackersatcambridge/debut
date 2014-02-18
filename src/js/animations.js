@@ -15,7 +15,6 @@ var animations = {
         //Resets the object to its original position if going forwards
         //TODO: measure some sort of initial state and use this in case the object already uses translate x and y
         if ((params.direction === 1) && (params.domClone)) {
-            console.log("Reverseidom", params.domClone);
             $(elem).css({x: $(params.domClone).css('x'), y: $(params.domClone).css('y')});
         }
         $(elem).css('opacity', 1);
@@ -47,18 +46,15 @@ var animations = {
         //console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
         $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, params.callback);
     },
-    slideTo: function(elem, context, params, callback) {
+    animate: function(elem, context, params, callback) {
         var toGo = {};
         if (params.direction === 1) {
-            if (params.x) {
-                toGo.x = params.x;
-            }
-            if (params.y) {
-                toGo.y = params.y;
-            }
+            toGo = params.prop;
         } else {
-            toGo.x = $(params.domClone).css('x');
-            toGo.y = $(params.domClone).css('y');
+            var e = $(params.domClone);
+            for (var i in params.prop) {
+                toGo[i] = e.css(i);
+            }
         }
         
         $(elem).transit(toGo, params.duration, params.easing, params.callback);
