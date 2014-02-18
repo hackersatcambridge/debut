@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <title>Oliver and Swan</title>
+        <meta name="description" content="" />
+        <meta name="viewport" content="width=device-width" />
+
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/normalize.min.css" />
+        <link rel="stylesheet" href="css/oliver-and-swan.min.css" />
+        <link rel="stylesheet" href="css/main.css" />
+        <script src="js/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!-- Sometimes you may have other things on the page as well as the presentation, the master is where it all starts. You may size it how you wish -->
+        <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3">
+            <div data-end-exit="slide" class="full light" style="background-color: #0f0">
+                <h1 class="centre">Slide Test</h1>
+            </div>
+            <div data-anim="slide{side:'right',start:'withprevious'}" data-end-exit="slide{side:'top'}" class="full light" style="background-color: #f00">
+                <h1 class="centre">This should be completely seamless</h1>
+            </div>
+            <div data-anim="slide{side:'bottom',start:'withprevious'}" class="full light" style="background-color: #00f">
+                <h1 class="centre">In any direction</h1>
+            </div>
+        </div>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
+        <script src="js/oliver-and-swan.js"></script>
+        <script type="application/javascript">
+            $(document).ready(function() {
+                $("#presentation-master").present();
+            });
+        </script>
+    </body>
+</html>

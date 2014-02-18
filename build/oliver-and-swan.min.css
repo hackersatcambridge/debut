@@ -2,3 +2,5 @@
 .presentation-master{background-color:#000;overflow:hidden;}
 .presentation-master .presentation-container{position:absolute;background-color:#fff;left:0;top:0}
 .presentation-master.letterbox .presentation-container{overflow:hidden}
+.presentation-master .center,.presentation-master .centre{text-align:center}
+.presentation-master .light{color:#fff}
