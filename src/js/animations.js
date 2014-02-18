@@ -1,7 +1,7 @@
 var animations = {
     appear: function(elem, context, params, callback) {
         if (params.direction === 1) {
-            $(elem).css('opacity', 1);
+            $(elem).css('opacity', '');
         } else if (params.direction === -1) {
             $(elem).css('opacity', 0);
         }
@@ -14,8 +14,9 @@ var animations = {
         
         //Resets the object to its original position if going forwards
         //TODO: measure some sort of initial state and use this in case the object already uses translate x and y
-        if (params.direction === 1) {
-            $(elem).css({x: 0, y: 0});
+        if ((params.direction === 1) && (params.domClone)) {
+            console.log("Reverseidom", params.domClone);
+            $(elem).css({x: $(params.domClone).css('x'), y: $(params.domClone).css('y')});
         }
         $(elem).css('opacity', 1);
         
@@ -49,18 +50,22 @@ var animations = {
 }
 
 function Animation(fun, params) {
-    this.params = params;
+    this.params = $.extend({easing: 'easeInOutCubic'}, params);
     this.fun = fun;
     //Valid values for start are onstep, withprevious and afterprevious
     this.start = "onstep";
     this.delay = 0;
     this._elem = null;
+    this.domClone = null;
     this.run = function(context, reverse) {
+        if ((!reverse) && (!this.domClone)) {
+            this.domClone = $(this._elem).clone();
+            this.params.domClone = this.domClone;
+        }
         var nparams = this.params;
         if (reverse) {
-            nparams = $.extend({}, this.params, {direction: -this.params.direction});
+            nparams = $.extend({}, this.params, {direction: -this.params.direction, domClone: this.domClone});
         }
-        console.log(this);
         this.fun(this._elem, context, nparams, function() { });
     }
 }

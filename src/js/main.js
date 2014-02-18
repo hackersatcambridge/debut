@@ -320,3 +320,7 @@ $.fn.present = function (options) {
     new OliverAndSwan($(this), options);
 };
 
+//Make the OliverAndSwan object global
+$.OliverAndSwan = OliverAndSwan;
+OliverAndSwan.animations = animations;
+

@@ -21,6 +21,8 @@
                     <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
                     <div style="position: absolute; left: 50px; top: 100px;" data-anim="slide{side:'right'}">Absolutely positioned element</div>
                     <div data-anim="appear{start:'withprevious'}">This should appear with the previous</div>
+                    <div data-end-exit="slide{to:'#slideTo'}">This should go to</div>
+                    <div data-anim="appear{start:'withprevious'}" id="slideTo">This!</div>
                 </div>
                 <div>
                     <div data-anim>Then this</div>
@@ -37,7 +39,7 @@
         </div>
         
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
         <script src="js/oliver-and-swan.js"></script>
         <script type="application/javascript">
             $(document).ready(function() {

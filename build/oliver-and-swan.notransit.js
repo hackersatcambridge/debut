@@ -1,12 +1,17 @@
-/*! oliver-and-swan 2014-02-11 */
+/*! oliver-and-swan 2014-02-18 */
 !function(exports, global) {
     function Animation(fun, params) {
-        this.params = params, this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious
-        this.start = "onstep", this.delay = 0, this._elem = null, this.run = function(context, reverse) {
+        this.params = $.extend({
+            easing: "easeInOutCubic"
+        }, params), this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious
+        this.start = "onstep", this.delay = 0, this._elem = null, this.domClone = null, 
+        this.run = function(context, reverse) {
+            reverse || this.domClone || (this.domClone = $(this._elem).clone(), this.params.domClone = this.domClone);
             var nparams = this.params;
             reverse && (nparams = $.extend({}, this.params, {
-                direction: -this.params.direction
-            })), console.log(this), this.fun(this._elem, context, nparams, function() {});
+                direction: -this.params.direction,
+                domClone: this.domClone
+            })), this.fun(this._elem, context, nparams, function() {});
         };
     }
     // Takes a string seperated by hyphens (default) and converts it to camel case
@@ -18,7 +23,7 @@
     global["true"] = exports;
     var $ = jQuery, animations = {
         appear: function(elem, context, params, callback) {
-            1 === params.direction ? $(elem).css("opacity", 1) : -1 === params.direction && $(elem).css("opacity", 0), 
+            1 === params.direction ? $(elem).css("opacity", "") : -1 === params.direction && $(elem).css("opacity", 0), 
             callback();
         },
         slide: function(elem, context, params) {
@@ -28,10 +33,11 @@
                 side: "left"
             }, params), //Resets the object to its original position if going forwards
             //TODO: measure some sort of initial state and use this in case the object already uses translate x and y
-            1 === params.direction && $(elem).css({
-                x: 0,
-                y: 0
-            }), $(elem).css("opacity", 1);
+            1 === params.direction && params.domClone && (console.log("Reverseidom", params.domClone), 
+            $(elem).css({
+                x: $(params.domClone).css("x"),
+                y: $(params.domClone).css("y")
+            })), $(elem).css("opacity", 1);
             //The position given by $.fn.offset is scaled so we have to account for that
             var position = $(elem).offset();
             switch (position.left = (position.left - context.containerLeft) / context.scale, 
@@ -222,7 +228,8 @@
     }, //Where all the magic happpens
     $.fn.present = function(options) {
         new OliverAndSwan($(this), options);
-    };
+    }, //Make the OliverAndSwan object global
+    $.OliverAndSwan = OliverAndSwan, OliverAndSwan.animations = animations;
 }({}, function() {
     return this;
 }());
