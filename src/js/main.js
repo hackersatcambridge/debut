@@ -118,7 +118,6 @@ var OliverAndSwan = function(outerContainer, options) {
         if (options.anim) {
             elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
-            options.anim._elem = elem;
             animationQueue.push(options.anim);
         }
         
@@ -134,6 +133,8 @@ var OliverAndSwan = function(outerContainer, options) {
         
         $(this).children().each(addChildren);
         
+        //Is there a need to differentiate between entrance/exit animations and modifyer animations?
+        //For the time being, one can just use data-exit to stop modifyer animations from being executed on childrenExit
         if (options.endExitChildren) {
             var queue = [];
             $(this).children().each(function(key, val) {
@@ -142,7 +143,6 @@ var OliverAndSwan = function(outerContainer, options) {
             //animationQueue.push(queue);
         } else if (options.endExit) {
             options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
-            options.endExit._elem = elem;
             animationQueue.push(options.endExit);
         }
     }, childrenExit = function(elem, top) {
@@ -281,9 +281,13 @@ $.fn.getDOMOptions = function (template) {
                                 options[key] = new Animation(animations.appear, params);
                             } else {
                                 options[key] = new Animation(animations[anim], params);
-                                if (params.start) {
-                                    options[key].start = params.start;
-                                }
+                            }
+                            options[key]._elem = $(this);
+                            if (params.start) {
+                                options[key].start = params.start;
+                            }
+                            if (params.on) {
+                                options[key]._elem = $(params.on);
                             }
                             break;
                         //If it's a string, just set it directly (is also the default type)

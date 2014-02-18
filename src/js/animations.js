@@ -46,6 +46,22 @@ var animations = {
         }
         //console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
         $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, params.callback);
+    },
+    slideTo: function(elem, context, params, callback) {
+        var toGo = {};
+        if (params.direction === 1) {
+            if (params.x) {
+                toGo.x = params.x;
+            }
+            if (params.y) {
+                toGo.y = params.y;
+            }
+        } else {
+            toGo.x = $(params.domClone).css('x');
+            toGo.y = $(params.domClone).css('y');
+        }
+        
+        $(elem).transit(toGo, params.duration, params.easing, params.callback);
     }
 }
 

@@ -540,6 +540,11 @@
                 x: "+=" + -params.direction * leftShift,
                 y: "+=" + -params.direction * topShift
             }, params.duration, params.easing, params.callback);
+        },
+        slideTo: function(elem, context, params) {
+            var toGo = {};
+            1 === params.direction ? (params.x && (toGo.x = params.x), params.y && (toGo.y = params.y)) : (toGo.x = $(params.domClone).css("x"), 
+            toGo.y = $(params.domClone).css("y")), $(elem).transit(toGo, params.duration, params.easing, params.callback);
         }
     }, slideMasterOptions = [ {
         key: "letterbox",
@@ -597,12 +602,13 @@
         options.letterbox && (console.log(options), $(this.outerContainer).addClass("letterbox"));
         var addChildren = function() {
             var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
+            //Is there a need to differentiate between entrance/exit animations and modifyer animations?
+            //For the time being, one can just use data-exit to stop modifyer animations from being executed on childrenExit
             if (options.anim && (elem.css("opacity", 0), options.anim.params = $.extend({}, {
                 direction: 1,
                 duration: 500,
                 easing: "in-out"
-            }, options.anim.params), options.anim._elem = elem, animationQueue.push(options.anim)), 
-            options.animChildrenStep && $(this).children().each(function(key, val) {
+            }, options.anim.params), animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
                 $(this).children().each(function(key, val) {
@@ -612,7 +618,7 @@
                 direction: -1,
                 duration: 500,
                 easing: "in-out"
-            }, options.endExit.params), options.endExit._elem = elem, animationQueue.push(options.endExit));
+            }, options.endExit.params), animationQueue.push(options.endExit));
         }, childrenExit = function(elem) {
             var options = $(elem).getDOMOptions(presentationObjectOptions);
             elem = $(elem), options.anim && !options.exit && (options.exit = $.extend(!0, new Animation(), options.anim)), 
@@ -676,7 +682,9 @@
                         options[key] = new Animation(fun, params);
                         break;
                     }
-                    anim in animations ? (options[key] = new Animation(animations[anim], params), params.start && (options[key].start = params.start)) : options[key] = new Animation(animations.appear, params);
+                    options[key] = anim in animations ? new Animation(animations[anim], params) : new Animation(animations.appear, params), 
+                    options[key]._elem = $(this), params.start && (options[key].start = params.start), 
+                    params.on && (options[key]._elem = $(params.on));
                     break;
 
                   //If it's a string, just set it directly (is also the default type)
