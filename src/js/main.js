@@ -17,12 +17,17 @@ var slideMasterOptions = [
             var arr = val.split(":");
             return parseFloat(arr[0]) / parseFloat(arr[1]);
         },
-        default: 16/9
+        default: 16 / 9
     },
     {
         key: "container-height",
         type: "number",
         default: 500
+    },
+    {
+        key: "presenter",
+        type: "boolean",
+        default: false
     }
 ];
 //Settings for objects in the presentation
@@ -142,6 +147,7 @@ var OliverAndSwan = function(outerContainer, options) {
         if (options.anim) {
             elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
+            options.anim.depth = elem.parents().length - $this.depth;
             animationQueue.push(options.anim);
         }
         
@@ -167,6 +173,7 @@ var OliverAndSwan = function(outerContainer, options) {
             //animationQueue.push(queue);
         } else if (options.endExit) {
             options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
+            options.endExit.depth = elem.parents().length - $this.depth;
             animationQueue.push(options.endExit);
         }
     }, childrenExit = function(elem, top) {
@@ -179,6 +186,7 @@ var OliverAndSwan = function(outerContainer, options) {
             options.exit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.exit.params);
             options.exit._elem = elem;
             options.exit.start = elem.index() !== 0 ? "withprevious" : "onstep";
+            options.exit.depth = elem.parents().length - $this.depth;
             animationQueue.push(options.exit);
         }
         /*$(this).children().each(function(key, val) {
@@ -199,7 +207,42 @@ var OliverAndSwan = function(outerContainer, options) {
         $this.proceed();
     });
     
-    this.proceed = function(reverse) {
+    // Method for jumping to a point in the presentation (by index)
+    // Will do smooth animations until at lowermost required depth
+    // Will then skip animations and then do smooth animations back up
+    this.goTo = function(index) {
+        var reverse = index < $this.index, direction = reverse ? -1 : 1;
+        if (index === $this.index) return;
+        if ((index < 0) || (index >= animationQueue.length)) throw new Error("Index out of animation queue bounds");
+        
+        //var commonDepth = animationQueue[$this.index].depth, incrementMap = [];
+        
+        // Loop over all of the animations without running them
+        // So we know what we have to do
+        /*for (var i = $this.index; i != index; i += direction) {
+            var animation = animationQueue[i];
+            if (animation.depth < commonDepth) {
+                commonDepth = animation.depth;
+            }
+        }*/
+        
+        // For now disregard what the comment describing this function says
+        // We will go through all animations instantly
+        // TODO: Make this function do as it says it does
+        
+        var proceed = function() {
+            // We have reached our goal or gone past it
+            if (((reverse) && ($this.index <= index)) || ((!reverse) && ($this.index >= index))) {
+                //Do we need to do anything here?
+            } else {
+                $this.proceed(reverse, 0, proceed);
+            }
+        }
+        
+        proceed();
+    };
+    
+    this.proceed = function(reverse, length, callback) {
         var fun, type, nextind;
         
         reverse = !!reverse;
@@ -215,7 +258,11 @@ var OliverAndSwan = function(outerContainer, options) {
         
         fun = animationQueue[$this.index];
         type = fun.constructor.name;
-        fun.run($this, reverse);
+        var extender = {};
+        if (typeof length !== 'undefined') {
+            extender.duration = length;
+        }
+        
         
         if (!reverse) {
             $this.index += 1;
@@ -224,11 +271,14 @@ var OliverAndSwan = function(outerContainer, options) {
         //nextind = $this.index + reverse ? -1 : 0;
         
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
+            fun.run($this, reverse, extender);
             if (fun.delay === 0) {
-                $this.proceed(reverse);
+                $this.proceed(reverse, length, callback);
             } else {
-                setTimeout(function() { $this.proceed(reverse) }, fun.delay);
+                setTimeout(function() { $this.proceed(reverse, length, callback) }, fun.delay);
             }
+        } else {
+            fun.run($this, reverse, extender, callback || undefined);
         }
         
         

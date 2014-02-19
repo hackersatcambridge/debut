@@ -4,20 +4,17 @@
         this.params = $.extend({
             easing: "easeInOutCubic"
         }, params), this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious
-        this.start = "onstep", this.delay = 0, this._elem = null, this.level = 1, this.domClone = null, 
-        this.run = function(context, reverse) {
+        this.start = "onstep", this.delay = 0, this._elem = null, this.depth = 1, this.domClone = null, 
+        this.run = function(context, reverse, nparams, callback) {
             if (!reverse && !this.domClone) {
                 this.domClone = $(this._elem).clone();
                 //The transforms are not carried through due to some weird quirk with Transit
                 //This is one of the only ways to actually do this
-                var trans = $(this._elem).css("transit:transform").toString();
+                var trans = ($(this._elem).css("transit:transform") || "").toString();
                 $(this.domClone).css("transit:transform", new $.transit.Transform(trans)), this.params.domClone = this.domClone;
             }
-            var nparams = this.params;
-            reverse && (nparams = $.extend({}, this.params, {
-                direction: -this.params.direction,
-                domClone: this.domClone
-            })), this.fun(this._elem, context, nparams, function() {});
+            var extender = {};
+            reverse && (extender.direction = -this.params.direction), this.fun(this._elem, context, $.extend({}, this.params, nparams || {}, extender), callback || function() {});
         };
     }
     // Takes a string seperated by hyphens (default) and converts it to camel case
@@ -577,6 +574,10 @@
         key: "container-height",
         type: "number",
         "default": 500
+    }, {
+        key: "presenter",
+        type: "boolean",
+        "default": !1
     } ], presentationObjectOptions = [ {
         key: "anim",
         type: "animation",
@@ -636,7 +637,8 @@
                 direction: 1,
                 duration: 500,
                 easing: "in-out"
-            }, options.anim.params), animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
+            }, options.anim.params), options.anim.depth = elem.parents().length - $this.depth, 
+            animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
                 $(this).children().each(function(key, val) {
@@ -646,7 +648,8 @@
                 direction: -1,
                 duration: 500,
                 easing: "in-out"
-            }, options.endExit.params), animationQueue.push(options.endExit));
+            }, options.endExit.params), options.endExit.depth = elem.parents().length - $this.depth, 
+            animationQueue.push(options.endExit));
         }, childrenExit = function(elem) {
             var options = $(elem).getDOMOptions(presentationObjectOptions);
             elem = $(elem), options.anim && !options.exit && (options.exit = $.extend(!0, new Animation(), options.anim)), 
@@ -655,24 +658,52 @@
                 duration: 500,
                 easing: "in-out"
             }, options.exit.params), options.exit._elem = elem, options.exit.start = 0 !== elem.index() ? "withprevious" : "onstep", 
-            animationQueue.push(options.exit));
+            options.exit.depth = elem.parents().length - $this.depth, animationQueue.push(options.exit));
         };
         this.innerContainer.children().each(addChildren), $(window).keydown(function(e) {
             //39 is right, 37 is left
             (39 === e.which || 37 === e.which) && $this.proceed(37 === e.which);
         }), $(this.outerContainer).click(function() {
             $this.proceed();
-        }), this.proceed = function(reverse) {
+        }), // Method for jumping to a point in the presentation (by index)
+        // Will do smooth animations until at lowermost required depth
+        // Will then skip animations and then do smooth animations back up
+        this.goTo = function(index) {
+            var reverse = index < $this.index;
+            if (index !== $this.index) {
+                if (0 > index || index >= animationQueue.length) throw new Error("Index out of animation queue bounds");
+                //var commonDepth = animationQueue[$this.index].depth, incrementMap = [];
+                // Loop over all of the animations without running them
+                // So we know what we have to do
+                /*for (var i = $this.index; i != index; i += direction) {
+            var animation = animationQueue[i];
+            if (animation.depth < commonDepth) {
+                commonDepth = animation.depth;
+            }
+        }*/
+                // For now disregard what the comment describing this function says
+                // We will go through all animations instantly
+                // TODO: Make this function do as it says it does
+                var proceed = function() {
+                    // We have reached our goal or gone past it
+                    reverse && $this.index <= index || !reverse && $this.index >= index || $this.proceed(reverse, 0, proceed);
+                };
+                proceed();
+            }
+        }, this.proceed = function(reverse, length, callback) {
             var fun, type;
             if (reverse = !!reverse) {
                 if ($this.index <= 0) return;
                 $this.index -= 1;
             } else if ($this.index >= animationQueue.length) return;
-            fun = animationQueue[$this.index], type = fun.constructor.name, fun.run($this, reverse), 
-            reverse || ($this.index += 1), //nextind = $this.index + reverse ? -1 : 0;
-            $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start && (0 === fun.delay ? $this.proceed(reverse) : setTimeout(function() {
-                $this.proceed(reverse);
-            }, fun.delay));
+            fun = animationQueue[$this.index], type = fun.constructor.name;
+            var extender = {};
+            "undefined" != typeof length && (extender.duration = length), reverse || ($this.index += 1), 
+            //nextind = $this.index + reverse ? -1 : 0;
+            $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
+            0 === fun.delay ? $this.proceed(reverse, length, callback) : setTimeout(function() {
+                $this.proceed(reverse, length, callback);
+            }, fun.delay)) : fun.run($this, reverse, extender, callback || void 0);
         };
     };
     //Returns an object based on a DOM elements data attributes that match the template

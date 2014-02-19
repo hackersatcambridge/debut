@@ -45,8 +45,9 @@
         <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
         <script src="js/oliver-and-swan.js"></script>
         <script type="application/javascript">
+            var presentation;
             $(document).ready(function() {
-                console.log($("#presentation-master").present());
+                console.log(presentation = $("#presentation-master").present());
             });
         </script>
     </body>
