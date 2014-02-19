@@ -44,7 +44,7 @@ var animations = {
             $(elem).css({"x": "+=" + (params.direction * leftShift), "y": "+=" + (params.direction * topShift)});
         }
         //console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
-        $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, params.callback);
+        $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, callback);
     },
     animate: function(elem, context, params, callback) {
         var toGo = {};
@@ -57,7 +57,12 @@ var animations = {
             }
         }
         
-        $(elem).transit(toGo, params.duration, params.easing, params.callback);
+        $(elem).transit(toGo, params.duration, params.easing, callback);
+    },
+    fade: function(elem, context, params, callback) {
+        //Opacity sucks because we use it for hiding elements
+        //TODO: Find a better way of hiding elements
+        $(elem).transit({opacity: params.direction === 1 ? 1 : 0}, params.duration, params.easing, callback)
     }
 }
 

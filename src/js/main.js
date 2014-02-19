@@ -47,14 +47,14 @@ var presentationObjectOptions = [
         type: "animation",
         default: null
     }
-], animationQueue = [];
+];
 
 
 var OliverAndSwan = function(outerContainer, options) {
     this.innerContainer = null;
     this.outerContainer = null;
     this.index = 0;
-    
+    var animationQueue = this.animationQueue = [];
     
     //TODO: Put all of this into the OliverAndSwan object
     var container = $('<div class="presentation-container"></div>'),
@@ -321,7 +321,7 @@ $.fn.getDOMOptions = function (template) {
 
 //Where all the magic happpens
 $.fn.present = function (options) {
-    new OliverAndSwan($(this), options);
+    return new OliverAndSwan($(this), options);
 };
 
 //Make the OliverAndSwan object global

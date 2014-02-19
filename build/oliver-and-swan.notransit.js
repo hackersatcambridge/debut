@@ -26,7 +26,7 @@
             1 === params.direction ? $(elem).css("opacity", "") : -1 === params.direction && $(elem).css("opacity", 0), 
             callback();
         },
-        slide: function(elem, context, params) {
+        slide: function(elem, context, params, callback) {
             //This animation has the object slide in (or out) from a particular side of the screen
             var leftShift = 0, topShift = 0;
             params = $.extend({
@@ -64,15 +64,22 @@
             $(elem).transit({
                 x: "+=" + -params.direction * leftShift,
                 y: "+=" + -params.direction * topShift
-            }, params.duration, params.easing, params.callback);
+            }, params.duration, params.easing, callback);
         },
-        animate: function(elem, context, params) {
+        animate: function(elem, context, params, callback) {
             var toGo = {};
             if (1 === params.direction) toGo = params.prop; else {
                 var e = $(params.domClone);
                 for (var i in params.prop) toGo[i] = e.css(i);
             }
-            $(elem).transit(toGo, params.duration, params.easing, params.callback);
+            $(elem).transit(toGo, params.duration, params.easing, callback);
+        },
+        fade: function(elem, context, params, callback) {
+            //Opacity sucks because we use it for hiding elements
+            //TODO: Find a better way of hiding elements
+            $(elem).transit({
+                opacity: 1 === params.direction ? 1 : 0
+            }, params.duration, params.easing, callback);
         }
     }, slideMasterOptions = [ {
         key: "letterbox",
@@ -106,10 +113,9 @@
         key: "anim-children-step",
         type: "animation",
         "default": null
-    } ], animationQueue = [], OliverAndSwan = function(outerContainer, options) {
+    } ], OliverAndSwan = function(outerContainer, options) {
         this.innerContainer = null, this.outerContainer = null, this.index = 0;
-        //TODO: Put all of this into the OliverAndSwan object
-        var masterWidth, masterHeight, container = $('<div class="presentation-container"></div>'), slideMaster = outerContainer, domOptions = $(outerContainer).getDOMOptions(slideMasterOptions), $this = this;
+        var masterWidth, masterHeight, animationQueue = this.animationQueue = [], container = $('<div class="presentation-container"></div>'), slideMaster = outerContainer, domOptions = $(outerContainer).getDOMOptions(slideMasterOptions), $this = this;
         $(outerContainer).addClass("presentation-master"), options = $.extend({}, domOptions, options), 
         this.containerHeight = options.containerHeight, this.containerWidth = this.containerHeight * options.aspectRatio, 
         this.scale = 1, container.height(this.containerHeight), container.width(this.containerWidth), 
@@ -237,7 +243,7 @@
         return options;
     }, //Where all the magic happpens
     $.fn.present = function(options) {
-        new OliverAndSwan($(this), options);
+        return new OliverAndSwan($(this), options);
     }, //Make the OliverAndSwan object global
     $.OliverAndSwan = OliverAndSwan, OliverAndSwan.animations = animations;
 }({}, function() {
