@@ -100,10 +100,6 @@
         key: "container-height",
         type: "number",
         "default": 500
-    }, {
-        key: "presenter",
-        type: "boolean",
-        "default": !1
     } ], presentationObjectOptions = [ {
         key: "anim",
         type: "animation",
@@ -186,12 +182,23 @@
             }, options.exit.params), options.exit._elem = elem, options.exit.start = 0 !== elem.index() ? "withprevious" : "onstep", 
             options.exit.depth = elem.parents().length - $this.depth, animationQueue.push(options.exit));
         };
-        this.innerContainer.children().each(addChildren), $(window).keydown(function(e) {
+        this.innerContainer.children().each(addChildren), $(this.outerContainer).keydown(function(e) {
             //39 is right, 37 is left
             (39 === e.which || 37 === e.which) && $this.proceed(37 === e.which);
         }), $(this.outerContainer).click(function() {
             $this.proceed();
-        }), // Method for jumping to a point in the presentation (by index)
+        }), this.presenterView = null, // Opens up a window in presenter view and fires a function at it when it's ready
+        this.openPresenterView = function(url, callback) {
+            return $this.presenterView = window.open(url, "Presenter" + location.href), $($this.presenterView.document).ready(function() {
+                $this.presenterView.ready($this), callback && callback($this.presenterView);
+            }), $this.presenterView;
+        }, // Binds an function to an event (just a wrapper for the jQuery equivalent)
+        this.on = function(event, callback) {
+            $($this).on(event, callback);
+        }, // Triggers an event (again, jQuery)
+        this.trigger = function(event, data) {
+            $(this).trigger(event, data);
+        }, // Method for jumping to a point in the presentation (by index)
         // Will do smooth animations until at lowermost required depth
         // Will then skip animations and then do smooth animations back up
         this.goTo = function(index) {

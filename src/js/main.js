@@ -23,11 +23,6 @@ var slideMasterOptions = [
         key: "container-height",
         type: "number",
         default: 500
-    },
-    {
-        key: "presenter",
-        type: "boolean",
-        default: false
     }
 ];
 //Settings for objects in the presentation
@@ -194,7 +189,7 @@ var OliverAndSwan = function(outerContainer, options) {
         });*/
     };
     this.innerContainer.children().each(addChildren);
-    $(window).keydown(function(e) {
+    $(this.outerContainer).keydown(function(e) {
         //39 is right, 37 is left
         
         if ((e.which === 39) || (e.which === 37)) {
@@ -206,6 +201,27 @@ var OliverAndSwan = function(outerContainer, options) {
     $(this.outerContainer).click(function(e) {
         $this.proceed();
     });
+    
+    this.presenterView = null;
+    // Opens up a window in presenter view and fires a function at it when it's ready
+    this.openPresenterView = function(url, callback) {
+        $this.presenterView = window.open(url, "Presenter" + location.href);
+        $($this.presenterView.document).ready(function() {
+            $this.presenterView.ready($this);
+            if (callback) callback($this.presenterView);
+        });
+        return $this.presenterView;
+    };
+    
+    // Binds an function to an event (just a wrapper for the jQuery equivalent)
+    this.on = function(event, callback) {
+        $($this).on(event, callback);
+    }
+    
+    // Triggers an event (again, jQuery)
+    this.trigger = function(event, data) {
+        $(this).trigger(event, data);
+    }
     
     // Method for jumping to a point in the presentation (by index)
     // Will do smooth animations until at lowermost required depth

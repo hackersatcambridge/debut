@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <title>Oliver and Swan</title>
+        <meta name="description" content="" />
+        <meta name="viewport" content="width=device-width" />
+
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/normalize.min.css" />
+        <link rel="stylesheet" href="css/oliver-and-swan.min.css" />
+        <link rel="stylesheet" href="css/main.css" />
+        <script src="js/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!-- Sometimes you may have other things on the page as well as the presentation, the master is where it all starts. You may size it how you wish -->
+        <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3">
+            <div data-end-exit="slide{side:'top',duration:1500}" class="full">
+                <div data-end-exit-children="slide">
+                    <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
+                    <div class="floater" data-x="-50" data-rotate="45" data-anim="slide">This is a floater!</div>
+                    <div style="position: absolute; left: 50px; top: 100px;" data-anim="slide{side:'right'}">Absolutely positioned element</div>
+                    <div data-anim="appear{start:'withprevious'}">This should appear with the previous</div>
+                    <div data-end-exit="slide{to:'#slideTo'}">This should go to</div>
+                    <div id="slideTest" data-anim="appear{start:'withprevious'}" id="slideTo">This!</div>
+                    <div data-anim="animate{prop:{x:50},on:'#slideTest'}"></div>
+                    <div data-anim="fade">Hi</div>
+                </div>
+                <div>
+                    <div data-anim>Then this</div>
+                    <div data-anim="{if(params.direction === 1)$('*').css('background','blue'); else $('*').css('background', ''); callback();}">And this</div>
+                </div>
+            </div>
+            <div>
+                <ul data-anim-children-step>
+                    <li>These should appear</li>
+                    <li>Automatically</li>
+                    <li>Derp</li>
+                </ul>
+            </div>
+        </div>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
+        <script src="js/oliver-and-swan.js"></script>
+        <script type="application/javascript">
+            var presentation;
+            $(document).ready(function() {
+                presentation = $("#presentation-master").present();
+                presentation.openPresenterView('presenter.html');
+            });
+        </script>
+    </body>
+</html>
