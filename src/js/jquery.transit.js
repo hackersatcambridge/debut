@@ -148,16 +148,8 @@
         value = new Transform(value);
       }
 
-      // We've seen the 3D version of Scale() not work in Chrome when the
-      // element being scaled extends outside of the viewport.  Thus, we're
-      // forcing Chrome to not use the 3d transforms as well.  Not sure if
-      // translate is affectede, but not risking it.  Detection code from
-      // http://davidwalsh.name/detecting-google-chrome-javascript
-      if (support.transform === 'WebkitTransform' && !isChrome) {
-        elem.style[support.transform] = value.toString(true);
-      } else {
-        elem.style[support.transform] = value.toString();
-      }
+      // Must always use 3D translations
+      elem.style[support.transform] = value.toString(true);
 
       $(elem).data('transform', value);
     }
@@ -428,7 +420,9 @@
             (i === 'transformOrigin'))) { continue; }
 
           if (i[0] !== '_') {
-            if (use3d && (i === 'scale')) {
+            if (i === 'translate2d') {
+              re.push('translate(' + this[i] + ')')
+            } else if (use3d && (i === 'scale')) {
               re.push(i + "3d(" + this[i] + ",1)");
             } else if (use3d && (i === 'translate')) {
               re.push(i + "3d(" + this[i] + ",0)");
