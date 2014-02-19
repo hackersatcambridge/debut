@@ -4,9 +4,15 @@
         this.params = $.extend({
             easing: "easeInOutCubic"
         }, params), this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious
-        this.start = "onstep", this.delay = 0, this._elem = null, this.domClone = null, 
+        this.start = "onstep", this.delay = 0, this._elem = null, this.level = 1, this.domClone = null, 
         this.run = function(context, reverse) {
-            reverse || this.domClone || (this.domClone = $(this._elem).clone(), this.params.domClone = this.domClone);
+            if (!reverse && !this.domClone) {
+                this.domClone = $(this._elem).clone();
+                //The transforms are not carried through due to some weird quirk with Transit
+                //This is one of the only ways to actually do this
+                var trans = $(this._elem).css("transit:transform").toString();
+                $(this.domClone).css("transit:transform", new $.transit.Transform(trans)), this.params.domClone = this.domClone;
+            }
             var nparams = this.params;
             reverse && (nparams = $.extend({}, this.params, {
                 direction: -this.params.direction,
@@ -493,7 +499,7 @@
             // Use jQuery's fx queue.
             return callOrQueue(self, queue, deferredRun), this;
         }, // Export some functions for testable-ness.
-        $.transit.getTransitionValue = getTransition;
+        $.transit.getTransitionValue = getTransition, $.transit.Transform = Transform;
     }(jQuery);
     var $ = jQuery, animations = {
         appear: function(elem, context, params, callback) {
@@ -587,14 +593,20 @@
         key: "anim-children-step",
         type: "animation",
         "default": null
-    } ], OliverAndSwan = function(outerContainer, options) {
+    } ], validTransforms = [ "x", "y", "z", "rotate", "rotate-x", "rotate-y", "scale", "scale-x", "scale-y" ];
+    for (var i in validTransforms) presentationObjectOptions.push({
+        key: validTransforms[i],
+        type: "string",
+        "default": null
+    }), validTransforms[i] = toCamelCase(validTransforms[i]);
+    var OliverAndSwan = function(outerContainer, options) {
         this.innerContainer = null, this.outerContainer = null, this.index = 0;
         var masterWidth, masterHeight, animationQueue = this.animationQueue = [], container = $('<div class="presentation-container"></div>'), slideMaster = outerContainer, domOptions = $(outerContainer).getDOMOptions(slideMasterOptions), $this = this;
         $(outerContainer).addClass("presentation-master"), options = $.extend({}, domOptions, options), 
         this.containerHeight = options.containerHeight, this.containerWidth = this.containerHeight * options.aspectRatio, 
         this.scale = 1, container.height(this.containerHeight), container.width(this.containerWidth), 
         container.css("transform-origin", "0 0"), this.containerLeft = 0, this.containerTop = 0, 
-        this.resize = function() {
+        this.depth = container.parents().length, this.resize = function() {
             var ratio;
             (slideMaster.width() != masterWidth || slideMaster.height() != masterHeight) && (masterWidth = slideMaster.width(), 
             masterHeight = slideMaster.height(), ratio = masterWidth / masterHeight, //If the viewport is wider, scale according to height
@@ -607,7 +619,15 @@
             }), container.css("scale", $this.scale));
         }, $(window).resize(this.resize), this.resize(), $(outerContainer).children("*").appendTo(container), 
         container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.innerContainer = container, 
-        options.letterbox && (console.log(options), $(this.outerContainer).addClass("letterbox"));
+        //Place all floaters in the centre of the screen using
+        container.find(".floater").each(function() {
+            var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).height()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
+            $(this).css({
+                top: top,
+                left: left
+            });
+            for (var i in validTransforms) options[validTransforms[i]] && $(this).css(validTransforms[i], options[validTransforms[i]]);
+        }), options.letterbox && (console.log(options), $(this.outerContainer).addClass("letterbox"));
         var addChildren = function() {
             var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
             //Is there a need to differentiate between entrance/exit animations and modifyer animations?
@@ -657,6 +677,7 @@
     };
     //Returns an object based on a DOM elements data attributes that match the template
     $.fn.getDOMOptions = function(template) {
+        //if ($(this).data("domOptions")) return $(this).data("domOptions");
         var i, attr, type, key, val, options = {};
         for (i in template) {
             if (key = toCamelCase(template[i].key), attr = this.attr("data-" + template[i].key), 
@@ -714,7 +735,7 @@
             //If the object still hasn't got a value, pull the default one
             options.hasOwnProperty(key) || (options[key] = template[i].default);
         }
-        return options;
+        return $(this).data("domOptions", options), options;
     }, //Where all the magic happpens
     $.fn.present = function(options) {
         return new OliverAndSwan($(this), options);

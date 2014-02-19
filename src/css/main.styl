@@ -10,6 +10,9 @@
 .presentation-master
     background-color: #000000;
     overflow: hidden;
+    *
+        -webkit-font-smoothing: subpixel-antialiased;
+    perspective: 8000;
     
     .presentation-container
         position: absolute;
@@ -27,5 +30,10 @@
             
     .light
         color: #fff;
+        
+    .floater
+        position: absolute;
+        top: 0;
+        left: 0;
     
     

@@ -724,4 +724,5 @@
 
   // Export some functions for testable-ness.
   $.transit.getTransitionValue = getTransition;
+  $.transit.Transform = Transform;
 })(jQuery);

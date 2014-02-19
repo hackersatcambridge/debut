@@ -1,6 +1,8 @@
 .full{position:absolute;left:0;top:0;height:100%;width:100%}
-.presentation-master{background-color:#000;overflow:hidden;}
+.presentation-master{background-color:#000;overflow:hidden;perspective:8000;}
+.presentation-master *{-webkit-font-smoothing:subpixel-antialiased}
 .presentation-master .presentation-container{position:absolute;background-color:#fff;left:0;top:0}
 .presentation-master.letterbox .presentation-container{overflow:hidden}
 .presentation-master .center,.presentation-master .centre{text-align:center}
 .presentation-master .light{color:#fff}
+.presentation-master .floater{position:absolute;top:0;left:0}

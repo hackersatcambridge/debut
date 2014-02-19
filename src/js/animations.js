@@ -73,10 +73,15 @@ function Animation(fun, params) {
     this.start = "onstep";
     this.delay = 0;
     this._elem = null;
+    this.level = 1;
     this.domClone = null;
     this.run = function(context, reverse) {
         if ((!reverse) && (!this.domClone)) {
             this.domClone = $(this._elem).clone();
+            //The transforms are not carried through due to some weird quirk with Transit
+            //This is one of the only ways to actually do this
+            var trans = $(this._elem).css('transit:transform').toString();
+            $(this.domClone).css('transit:transform', new $.transit.Transform(trans));
             this.params.domClone = this.domClone;
         }
         var nparams = this.params;

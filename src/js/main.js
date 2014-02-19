@@ -24,8 +24,8 @@ var slideMasterOptions = [
         type: "number",
         default: 500
     }
-//Settings for objects in the presentation
 ];
+//Settings for objects in the presentation
 var presentationObjectOptions = [
     {
         key: "anim",
@@ -48,7 +48,16 @@ var presentationObjectOptions = [
         default: null
     }
 ];
-
+//Valide properties to put in data options for transforming the element
+var validTransforms = ['x','y','z','rotate','rotate-x','rotate-y','scale','scale-x','scale-y'];
+for (var i in validTransforms) {
+    presentationObjectOptions.push({
+        key: validTransforms[i],
+        type: "string",
+        default: null
+    });
+    validTransforms[i] = toCamelCase(validTransforms[i]);
+}
 
 var OliverAndSwan = function(outerContainer, options) {
     this.innerContainer = null;
@@ -56,7 +65,7 @@ var OliverAndSwan = function(outerContainer, options) {
     this.index = 0;
     var animationQueue = this.animationQueue = [];
     
-    //TODO: Put all of this into the OliverAndSwan object
+    //TODO: Clean up this mess
     var container = $('<div class="presentation-container"></div>'),
         slideMaster = outerContainer,
         domOptions = $(outerContainer).getDOMOptions(slideMasterOptions),
@@ -74,6 +83,7 @@ var OliverAndSwan = function(outerContainer, options) {
     container.css("transform-origin", "0 0");
     this.containerLeft = 0;
     this.containerTop = 0;
+    this.depth = container.parents().length;
     
     
     this.resize = function(e) {
@@ -106,6 +116,20 @@ var OliverAndSwan = function(outerContainer, options) {
     
     this.outerContainer = $(outerContainer);
     this.innerContainer = container;
+    
+    //Place all floaters in the centre of the screen using
+    container.find(".floater").each(function() {
+        var left = ($this.containerWidth - $(this).width()) / 2,
+            top = ($this.containerHeight - $(this).height()) / 2,
+            options = $(this).getDOMOptions(presentationObjectOptions);
+        $(this).css({top: top, left: left});
+        
+        for(var i in validTransforms) {
+            if (options[validTransforms[i]]) {
+                $(this).css(validTransforms[i], options[validTransforms[i]]);
+            }
+        }
+    });
     
     
     if (options.letterbox) {
@@ -228,6 +252,7 @@ function toCamelCase(str, seperator) {
 
 //Returns an object based on a DOM elements data attributes that match the template
 $.fn.getDOMOptions = function (template) {
+    //if ($(this).data("domOptions")) return $(this).data("domOptions");
     var i, attr, type, key, val,
         options = { };
     for (i in template) {
@@ -316,6 +341,7 @@ $.fn.getDOMOptions = function (template) {
             options[key] = template[i].default;
         }
     }
+    $(this).data("domOptions", options);
     return options;
 };
 
