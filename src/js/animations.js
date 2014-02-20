@@ -67,14 +67,20 @@ var animations = {
 }
 
 function Animation(fun, params) {
-    this.params = $.extend({easing: 'easeInOutCubic'}, params);
+    //Actual function to run for animation
     this.fun = fun;
-    //Valid values for start are onstep, withprevious and afterprevious
+    //Valid values for start are onstep, withprevious and afterprevious (not implemented)
     this.start = "onstep";
+    //Delay between animation call and it being run (implemented by runner)
     this.delay = 0;
+    //Element to run animation on
     this._elem = null;
+    //Level of DOM in respect to presentation container
     this.depth = 1;
+    //Clone of element before animation is run
     this.domClone = null;
+    //Element full of notes for this animation
+    this.notes = null;
     this.run = function(context, reverse, nparams, callback) {
         if ((!reverse) && (!this.domClone)) {
             this.domClone = $(this._elem).clone();

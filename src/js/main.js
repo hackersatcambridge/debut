@@ -115,6 +115,7 @@ var OliverAndSwan = function(outerContainer, options) {
     container.appendTo(outerContainer);
     
     this.outerContainer = $(outerContainer);
+    this.outerContainer.attr("tabindex", 1);
     this.innerContainer = container;
     
     //Place all floaters in the centre of the screen using
@@ -137,12 +138,18 @@ var OliverAndSwan = function(outerContainer, options) {
         $(this.outerContainer).addClass("letterbox");
     }
     
+    
+    
     var addChildren = function() {
         var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
         if (options.anim) {
             elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
             options.anim.depth = elem.parents().length - $this.depth;
+            /*if (elem.children(".notes")) {
+                options.anim.notes = elem.children(".notes");
+                elem.remove(".notes");
+            }*/
             animationQueue.push(options.anim);
         }
         
@@ -285,7 +292,7 @@ var OliverAndSwan = function(outerContainer, options) {
         }
         
         //nextind = $this.index + reverse ? -1 : 0;
-        
+        //$this.trigger("animateStart", {});
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
             fun.run($this, reverse, extender);
             if (fun.delay === 0) {
@@ -294,6 +301,7 @@ var OliverAndSwan = function(outerContainer, options) {
                 setTimeout(function() { $this.proceed(reverse, length, callback) }, fun.delay);
             }
         } else {
+            
             fun.run($this, reverse, extender, callback || undefined);
         }
         

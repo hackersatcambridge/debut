@@ -15,10 +15,26 @@
     </head>
     <body>
         <!-- Default presenter view template. Edit how you want -->
-        <div id="presenter-navigation"></div>
+        <div id="presenter-navigation">
+            <div id="note-container">
+            </div>
+        </div>
         <script type="application/javascript">
             window.ready = function(presentation) {
                 var $ = window.opener.jQuery;
+                presentation.on("animateStart", function(e) {
+                    var i = presentation.index + 1, animation;// notes = $('<div>');
+                    
+                    while (--i) {
+                        animation = presentation.animationQueue[i];
+                        if (animation.notes) {
+                            //notes = animation.notes;
+                        }
+                    }
+                    
+                    //$("#note-container").append(notes);
+                    
+                });
             }
         </script>
     </body>

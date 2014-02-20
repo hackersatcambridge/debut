@@ -1,11 +1,14 @@
-/*! oliver-and-swan 2014-02-19 */
+/*! oliver-and-swan 2014-02-20 */
 !function(exports, global) {
-    function Animation(fun, params) {
-        this.params = $.extend({
-            easing: "easeInOutCubic"
-        }, params), this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious
-        this.start = "onstep", this.delay = 0, this._elem = null, this.depth = 1, this.domClone = null, 
-        this.run = function(context, reverse, nparams, callback) {
+    function Animation(fun) {
+        //Actual function to run for animation
+        this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious (not implemented)
+        this.start = "onstep", //Delay between animation call and it being run (implemented by runner)
+        this.delay = 0, //Element to run animation on
+        this._elem = null, //Level of DOM in respect to presentation container
+        this.depth = 1, //Clone of element before animation is run
+        this.domClone = null, //Element full of notes for this animation
+        this.notes = null, this.run = function(context, reverse, nparams, callback) {
             if (!reverse && !this.domClone) {
                 this.domClone = $(this._elem).clone();
                 //The transforms are not carried through due to some weird quirk with Transit
@@ -615,8 +618,8 @@
                 top: $this.containerTop
             }), container.css("scale", $this.scale));
         }, $(window).resize(this.resize), this.resize(), $(outerContainer).children("*").appendTo(container), 
-        container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.innerContainer = container, 
-        //Place all floaters in the centre of the screen using
+        container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.outerContainer.attr("tabindex", 1), 
+        this.innerContainer = container, //Place all floaters in the centre of the screen using
         container.find(".floater").each(function() {
             var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).height()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
             $(this).css({
@@ -634,6 +637,10 @@
                 duration: 500,
                 easing: "in-out"
             }, options.anim.params), options.anim.depth = elem.parents().length - $this.depth, 
+            /*if (elem.children(".notes")) {
+                options.anim.notes = elem.children(".notes");
+                elem.remove(".notes");
+            }*/
             animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
@@ -707,6 +714,7 @@
             var extender = {};
             "undefined" != typeof length && (extender.duration = length), reverse || ($this.index += 1), 
             //nextind = $this.index + reverse ? -1 : 0;
+            //$this.trigger("animateStart", {});
             $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
             0 === fun.delay ? $this.proceed(reverse, length, callback) : setTimeout(function() {
                 $this.proceed(reverse, length, callback);
