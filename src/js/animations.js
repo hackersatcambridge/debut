@@ -67,6 +67,7 @@ var animations = {
 }
 
 function Animation(fun, params) {
+    this.params = $.extend(true, {easing: 'easeInOutCubic'}, params);
     //Actual function to run for animation
     this.fun = fun;
     //Valid values for start are onstep, withprevious and afterprevious (not implemented)
@@ -95,6 +96,6 @@ function Animation(fun, params) {
             extender.direction = -this.params.direction;
         }
         
-        this.fun(this._elem, context, $.extend({}, this.params, nparams || {}, extender), callback || function() { });
+        this.fun(this._elem, context, $.extend(true, {}, this.params, nparams || {}, extender), callback || function() { });
     }
 }

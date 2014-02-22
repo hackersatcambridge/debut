@@ -1,7 +1,9 @@
-/*! oliver-and-swan 2014-02-20 */
+/*! oliver-and-swan 2014-02-22 */
 !function(exports, global) {
-    function Animation(fun) {
-        //Actual function to run for animation
+    function Animation(fun, params) {
+        this.params = $.extend(!0, {
+            easing: "easeInOutCubic"
+        }, params), //Actual function to run for animation
         this.fun = fun, //Valid values for start are onstep, withprevious and afterprevious (not implemented)
         this.start = "onstep", //Delay between animation call and it being run (implemented by runner)
         this.delay = 0, //Element to run animation on
@@ -17,7 +19,7 @@
                 $(this.domClone).css("transit:transform", new $.transit.Transform(trans)), this.params.domClone = this.domClone;
             }
             var extender = {};
-            reverse && (extender.direction = -this.params.direction), this.fun(this._elem, context, $.extend({}, this.params, nparams || {}, extender), callback || function() {});
+            reverse && (extender.direction = -this.params.direction), this.fun(this._elem, context, $.extend(!0, {}, this.params, nparams || {}, extender), callback || function() {});
         };
     }
     // Takes a string seperated by hyphens (default) and converts it to camel case
