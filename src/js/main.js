@@ -23,6 +23,11 @@ var slideMasterOptions = [
         key: "container-height",
         type: "number",
         default: 500
+    },
+    {
+        key: "canvas-upscale",
+        type: "number",
+        default: 4
     }
 ];
 //Settings for objects in the presentation
@@ -59,11 +64,37 @@ for (var i in validTransforms) {
     validTransforms[i] = toCamelCase(validTransforms[i]);
 }
 
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
+                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+ 
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+ 
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 var OliverAndSwan = function(outerContainer, options) {
     this.innerContainer = null;
     this.outerContainer = null;
     this.index = 0;
     this.milestones = [];
+    this.events = {};
     var animationQueue = this.animationQueue = [];
     
     //TODO: Clean up this mess
@@ -75,7 +106,7 @@ var OliverAndSwan = function(outerContainer, options) {
         i, masterWidth, masterHeight, $this = this;
     $(outerContainer).addClass("presentation-master");
     options = $.extend({ }, domOptions, options);
-    
+    this.options = options;
     this.containerHeight = options.containerHeight;
     this.containerWidth = this.containerHeight * options.aspectRatio;
     this.scale = 1;
@@ -118,6 +149,24 @@ var OliverAndSwan = function(outerContainer, options) {
     this.outerContainer = $(outerContainer);
     this.innerContainer = container;
     
+    // Scale the canvases by the canvas scale factor
+    // If it is not a floater, it will scale by the top left
+    // If it is, it will scale by the centre
+    container.find("canvas").each(function() {
+        var options = $(this).getDOMOptions([{
+            key: "upscale",
+            type: "number",
+            default: $this.options.canvasUpscale
+        }]);
+        
+        var width = $(this).width(), height = $(this).height();
+        
+        $(this).attr("width", width * options.upscale);
+        $(this).attr("height", height * options.upscale);
+        
+        $(this).css({width: width, height: height});
+    });
+    
     //Place all floaters in the centre of the screen using left and top
     // Would much rather use a combination of translate and translate3d
     // But this cannot be done until a fix for Webkit's gross 3D rendering is found
@@ -133,6 +182,8 @@ var OliverAndSwan = function(outerContainer, options) {
             }
         }
     });
+    
+    
     
     
     if (options.letterbox) {
@@ -224,6 +275,7 @@ var OliverAndSwan = function(outerContainer, options) {
         }
     });
     
+    
     this.presenterView = null;
     // Opens up a window in presenter view and fires a function at it when it's ready
     this.openPresenterView = function(url, callback) {
@@ -242,14 +294,23 @@ var OliverAndSwan = function(outerContainer, options) {
         return $this.presenterView;
     };
     
-    // Binds an function to an event (just a wrapper for the jQuery equivalent)
+    // Binds an function to an event
     this.on = function(event, callback) {
-        $($this).on(event, callback);
+        if (!$this.events[event]) {
+            $this.events[event] = [];
+        }
+        $this.events[event].push(callback);
     }
     
-    // Triggers an event (again, jQuery)
+    // Triggers an event
     this.trigger = function(event, data) {
-        $(this).trigger(event, data);
+        if (!$this.events[event]) {
+            $this.events[event] = [];
+        }
+        var i = 0, trigger;
+        while(trigger = $this.events[event][i++]) {
+            trigger(data);
+        }
     }
     
     // Method for jumping to a point in the presentation (by index)
@@ -333,6 +394,15 @@ var OliverAndSwan = function(outerContainer, options) {
         
         
     }
+    
+    var lastTime = 0;
+    this.animationFrame = function(time) {
+        if (lastTime === 0) lastTime = time;
+        $this.trigger("animationFrame", time - lastTime);
+        lastTime = time;
+        requestAnimationFrame($this.animationFrame);
+    };
+    requestAnimationFrame(this.animationFrame);
     
 };
 

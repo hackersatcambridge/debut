@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <title>Oliver and Swan</title>
+        <meta name="description" content="" />
+        <meta name="viewport" content="width=device-width" />
+
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,400,300,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/normalize.min.css" />
+        <link rel="stylesheet" href="css/oliver-and-swan.min.css" />
+        <link rel="stylesheet" href="css/main.css" />
+        <script src="js/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!-- Sometimes you may have other things on the page as well as the presentation, the master is where it all starts. You may size it how you wish -->
+        <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3" data-canvas-upscale="2">
+            <div data-end-exis="slide{side:'top',duration:1500}" class="full">
+                <canvas class="full" id="canvas"></canvas>
+                <div class="floater" id="desc1">With canvases, you can make anything</div>
+                
+                <div data-anim="animate{prop:{radius: 200},on:window.animatables,easing:'swing'}"></div>
+                <div data-anim="fade{direction:-1,on:'#desc1',start:'withprevious'}"></div>
+                <div class="floater" data-anim="fade{start:'withprevious'}" id="desc2">Whooshy effects</div>
+                
+                <div data-anim="toggle{var:'capped',on:window.animatables}"></div>
+                <div data-anim="fade{direction:-1,on:'#desc2',start:'withprevious'}"></div>
+                <div class="floater" data-anim="fade{start:'withprevious'}" id="desc3">Toggle some things</div>
+                
+                <div data-anim="animate{prop:{speed: 0.0001},on:window.animatables,easing:'swing'}"></div>
+                <div data-anim="fade{direction:-1,on:'#desc3',start:'withprevious'}"></div>
+                <div class="floater" data-anim="fade{start:'withprevious'}" id="desc4">Slow it right down</div>
+                
+                <div data-anim="animate{prop:{speed: 0.02},on:window.animatables,easing:'swing'}"></div>
+                <div data-anim="fade{direction:-1,on:'#desc4',start:'withprevious'}"></div>
+                <div class="floater" data-anim="fade{start:'withprevious'}" id="desc5">Or go for a rush</div>
+                
+                <div data-anim="animate{prop:{radius: 100},on:window.animatables,easing:'swing'}"></div>
+                <div data-anim="fade{direction:-1,on:'#desc5',start:'withprevious'}"></div>
+                <div class="floater" data-anim="fade{start:'withprevious'}" id="desc6">Enjoy</div>
+            </div>
+        </div>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
+        <script src="js/oliver-and-swan.js"></script>
+        <script type="application/javascript">
+            window.animatables = {
+                radius: 100,
+                rot: 0,
+                capped: false,
+                speed: .001
+            }
+            var presentation;
+            $(document).ready(function() {
+                console.log(presentation = $("#presentation-master").present());
+                var canvas = $("#canvas")[0];
+                presentation.on("animationFrame", function(e) {
+                    var context = canvas.getContext("2d");
+                    
+                    animatables.rot += e * animatables.speed;
+                    
+                    context.lineCap = animatables.capped ? "round" : "butt";
+                    
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.beginPath();
+                    context.strokeStyle = "#666";
+                    context.lineWidth = 20
+                    context.arc(canvas.width / 2, canvas.height / 2, window.animatables.radius, animatables.rot, animatables.rot + 3);
+                    context.stroke();
+                    
+                    context.beginPath();
+                    context.arc(canvas.width / 2, canvas.height / 2, window.animatables.radius * window.animatables.radius / 70, -animatables.rot / 2, -animatables.rot / 2 + 1);
+                    context.stroke();
+                    
+                });
+            });
+        </script>
+    </body>
+</html>

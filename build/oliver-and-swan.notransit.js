@@ -1,4 +1,4 @@
-/*! oliver-and-swan 2014-02-23 */
+/*! oliver-and-swan 2014-02-24 */
 !function(exports, global) {
     function Animation(fun, params) {
         this.params = $.extend(!0, {
@@ -12,11 +12,14 @@
         this.domClone = null, //Element full of notes for this animation
         this.notes = null, this.run = function(context, reverse, nparams, callback) {
             if (!reverse && !this.domClone) {
-                this.domClone = $(this._elem).clone();
-                //The transforms are not carried through due to some weird quirk with Transit
-                //This is one of the only ways to actually do this
-                var trans = ($(this._elem).css("transit:transform") || "").toString();
-                $(this.domClone).css("transit:transform", new $.transit.Transform(trans)), this.params.domClone = this.domClone;
+                if ($(this._elem)[0].nodeName) {
+                    this.domClone = $(this._elem).clone();
+                    //The transforms are not carried through due to some weird quirk with Transit
+                    //This is one of the only ways to actually do this
+                    var trans = ($(this._elem).css("transit:transform") || "").toString();
+                    $(this.domClone).css("transit:transform", new $.transit.Transform(trans));
+                } else this.domClone = $($.extend(!0, {}, $(this._elem)[0]));
+                this.params.domClone = this.domClone;
             }
             var extender = {};
             reverse && (extender.direction = -this.params.direction), this.fun(this._elem, context, $.extend(!0, {}, this.params, nparams || {}, extender), callback || function() {});
@@ -73,13 +76,25 @@
                 y: "+=" + -params.direction * topShift
             }, params.duration, params.easing, callback);
         },
-        animate: function(elem, context, params, callback) {
+        transit: function(elem, context, params, callback) {
             var toGo = {};
             if (1 === params.direction) toGo = params.prop; else {
                 var e = $(params.domClone);
                 for (var i in params.prop) toGo[i] = e.css(i);
             }
             $(elem).transit(toGo, params.duration, params.easing, callback);
+        },
+        animate: function(elem, context, params, callback) {
+            var toGo = {}, isDOM = !!$(elem)[0].nodeName;
+            if (1 === params.direction) toGo = params.prop; else {
+                var e = $(params.domClone);
+                for (var i in params.prop) toGo[i] = isDOM ? e.css(i) : e.attr(i);
+            }
+            $(elem).animate(toGo, params.duration, params.easing, callback);
+        },
+        toggle: function(elem, context, params, callback) {
+            $(elem).attr(params.var, "undefined" == typeof params.toggleTo ? !$(elem).attr(params.var) : 1 === params.direction ? !!params.toggleTo : !params.toggleTo), 
+            callback();
         },
         fade: function(elem, context, params, callback) {
             //Opacity sucks because we use it for hiding elements
@@ -104,6 +119,10 @@
         key: "container-height",
         type: "number",
         "default": 500
+    }, {
+        key: "canvas-upscale",
+        type: "number",
+        "default": 4
     } ], presentationObjectOptions = [ {
         key: "anim",
         type: "animation",
@@ -126,11 +145,24 @@
         type: "string",
         "default": null
     }), validTransforms[i] = toCamelCase(validTransforms[i]);
+    !function() {
+        for (var lastTime = 0, vendors = [ "ms", "moz", "webkit", "o" ], x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) window.requestAnimationFrame = window[vendors[x] + "RequestAnimationFrame"], 
+        window.cancelAnimationFrame = window[vendors[x] + "CancelAnimationFrame"] || window[vendors[x] + "CancelRequestAnimationFrame"];
+        window.requestAnimationFrame || (window.requestAnimationFrame = function(callback) {
+            var currTime = new Date().getTime(), timeToCall = Math.max(0, 16 - (currTime - lastTime)), id = window.setTimeout(function() {
+                callback(currTime + timeToCall);
+            }, timeToCall);
+            return lastTime = currTime + timeToCall, id;
+        }), window.cancelAnimationFrame || (window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        });
+    }();
     var OliverAndSwan = function(outerContainer, options) {
-        this.innerContainer = null, this.outerContainer = null, this.index = 0, this.milestones = [];
+        this.innerContainer = null, this.outerContainer = null, this.index = 0, this.milestones = [], 
+        this.events = {};
         var masterWidth, masterHeight, animationQueue = this.animationQueue = [], container = $('<div class="presentation-container"></div>'), slideMaster = outerContainer, domOptions = $(outerContainer).getDOMOptions(slideMasterOptions), $this = this;
         $(outerContainer).addClass("presentation-master"), options = $.extend({}, domOptions, options), 
-        this.containerHeight = options.containerHeight, this.containerWidth = this.containerHeight * options.aspectRatio, 
+        this.options = options, this.containerHeight = options.containerHeight, this.containerWidth = this.containerHeight * options.aspectRatio, 
         this.scale = 1, container.height(this.containerHeight), container.width(this.containerWidth), 
         container.css("transform-origin", "0 0"), this.containerLeft = 0, this.containerTop = 0, 
         this.depth = container.parents().length, this.resize = function() {
@@ -146,7 +178,21 @@
             }), container.css("scale", $this.scale));
         }, $(window).resize(this.resize), this.resize(), $(outerContainer).children("*").appendTo(container), 
         container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.innerContainer = container, 
-        //Place all floaters in the centre of the screen using left and top
+        // Scale the canvases by the canvas scale factor
+        // If it is not a floater, it will scale by the top left
+        // If it is, it will scale by the centre
+        container.find("canvas").each(function() {
+            var options = $(this).getDOMOptions([ {
+                key: "upscale",
+                type: "number",
+                "default": $this.options.canvasUpscale
+            } ]), width = $(this).width(), height = $(this).height();
+            $(this).attr("width", width * options.upscale), $(this).attr("height", height * options.upscale), 
+            $(this).css({
+                width: width,
+                height: height
+            });
+        }), //Place all floaters in the centre of the screen using left and top
         // Would much rather use a combination of translate and translate3d
         // But this cannot be done until a fix for Webkit's gross 3D rendering is found
         container.find(".floater").each(function() {
@@ -210,12 +256,13 @@
             }), $this.presenterView.onbeforeunload = function() {
                 $this.presenterView = null;
             }, $this.presenterView;
-        }, // Binds an function to an event (just a wrapper for the jQuery equivalent)
+        }, // Binds an function to an event
         this.on = function(event, callback) {
-            $($this).on(event, callback);
-        }, // Triggers an event (again, jQuery)
+            $this.events[event] || ($this.events[event] = []), $this.events[event].push(callback);
+        }, // Triggers an event
         this.trigger = function(event, data) {
-            $(this).trigger(event, data);
+            $this.events[event] || ($this.events[event] = []);
+            for (var trigger, i = 0; trigger = $this.events[event][i++]; ) trigger(data);
         }, // Method for jumping to a point in the presentation (by index)
         // Will do smooth animations until at lowermost required depth
         // Will then skip animations and then do smooth animations back up
@@ -257,6 +304,11 @@
                 $this.proceed(reverse, length, callback);
             }, fun.delay)) : fun.run($this, reverse, extender, callback || void 0);
         };
+        var lastTime = 0;
+        this.animationFrame = function(time) {
+            0 === lastTime && (lastTime = time), $this.trigger("animationFrame", time - lastTime), 
+            lastTime = time, requestAnimationFrame($this.animationFrame);
+        }, requestAnimationFrame(this.animationFrame);
     };
     //Returns an object based on a DOM elements data attributes that match the template
     $.fn.getDOMOptions = function(template) {

@@ -45,7 +45,7 @@ var animations = {
         }
         $(elem).transit({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)}, params.duration, params.easing, callback);
     },
-    animate: function(elem, context, params, callback) {
+    transit: function(elem, context, params, callback) {
         var toGo = {};
         if (params.direction === 1) {
             toGo = params.prop;
@@ -57,6 +57,28 @@ var animations = {
         }
         
         $(elem).transit(toGo, params.duration, params.easing, callback);
+    },
+    animate: function(elem, context, params, callback) {
+        var toGo = {}, isDOM = !!$(elem)[0].nodeName;
+        if (params.direction === 1) {
+            toGo = params.prop;
+        } else {
+            var e = $(params.domClone);
+            for (var i in params.prop) {
+                if (isDOM){
+                    toGo[i] = e.css(i);
+                } else {
+                    toGo[i] = e.attr(i);
+                }
+                
+            }
+        }
+        
+        $(elem).animate(toGo, params.duration, params.easing, callback);
+    },
+    toggle: function(elem, context, params, callback) {
+        $(elem).attr(params.var, typeof params.toggleTo === "undefined" ? !$(elem).attr(params.var) : (params.direction === 1 ? !!params.toggleTo : !params.toggleTo));
+        callback();
     },
     fade: function(elem, context, params, callback) {
         //Opacity sucks because we use it for hiding elements
@@ -83,11 +105,15 @@ function Animation(fun, params) {
     this.notes = null;
     this.run = function(context, reverse, nparams, callback) {
         if ((!reverse) && (!this.domClone)) {
-            this.domClone = $(this._elem).clone();
-            //The transforms are not carried through due to some weird quirk with Transit
-            //This is one of the only ways to actually do this
-            var trans = ($(this._elem).css('transit:transform') || "").toString();
-            $(this.domClone).css('transit:transform', new $.transit.Transform(trans));
+            if ($(this._elem)[0].nodeName) {
+                this.domClone = $(this._elem).clone();
+                //The transforms are not carried through due to some weird quirk with Transit
+                //This is one of the only ways to actually do this
+                var trans = ($(this._elem).css('transit:transform') || "").toString();
+                $(this.domClone).css('transit:transform', new $.transit.Transform(trans));
+            } else {
+                this.domClone = $($.extend(true, {}, $(this._elem)[0]));
+            }
             this.params.domClone = this.domClone;
         }
         var extender = {};
