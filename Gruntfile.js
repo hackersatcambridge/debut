@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     var jsFiles = ['src/js/jquery.transit.js', 'src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'],
         jsFilesNoTransit = ['src/js/startup.js', 'src/js/animations.js', 'src/js/main.js'];
     var cssFiles = {
-        'build/oliver-and-swan.min.css': ['src/css/main.styl']
+        'build/oliver-and-swan.min.css': ['src/css/main.styl','src/css/presenter.styl']
     };
     
     grunt.initConfig({

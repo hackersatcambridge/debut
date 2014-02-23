@@ -83,6 +83,7 @@ function Animation(fun, params) {
     //Element full of notes for this animation
     this.notes = null;
     this.run = function(context, reverse, nparams, callback) {
+        console.log(this._elem);
         if ((!reverse) && (!this.domClone)) {
             this.domClone = $(this._elem).clone();
             //The transforms are not carried through due to some weird quirk with Transit

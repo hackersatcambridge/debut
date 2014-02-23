@@ -1,4 +1,4 @@
-/*! oliver-and-swan 2014-02-22 */
+/*! oliver-and-swan 2014-02-23 */
 !function(exports, global) {
     function Animation(fun, params) {
         this.params = $.extend(!0, {
@@ -11,7 +11,7 @@
         this.depth = 1, //Clone of element before animation is run
         this.domClone = null, //Element full of notes for this animation
         this.notes = null, this.run = function(context, reverse, nparams, callback) {
-            if (!reverse && !this.domClone) {
+            if (console.log(this._elem), !reverse && !this.domClone) {
                 this.domClone = $(this._elem).clone();
                 //The transforms are not carried through due to some weird quirk with Transit
                 //This is one of the only ways to actually do this
@@ -620,8 +620,10 @@
                 top: $this.containerTop
             }), container.css("scale", $this.scale));
         }, $(window).resize(this.resize), this.resize(), $(outerContainer).children("*").appendTo(container), 
-        container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.outerContainer.attr("tabindex", 1), 
-        this.innerContainer = container, //Place all floaters in the centre of the screen using
+        container.appendTo(outerContainer), this.outerContainer = $(outerContainer), this.innerContainer = container, 
+        //Place all floaters in the centre of the screen using left and top
+        // Would much rather use a combination of translate and translate3d
+        // But this cannot be done until a fix for Webkit's gross 3D rendering is found
         container.find(".floater").each(function() {
             var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).height()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
             $(this).css({
@@ -639,11 +641,9 @@
                 duration: 500,
                 easing: "in-out"
             }, options.anim.params), options.anim.depth = elem.parents().length - $this.depth, 
-            /*if (elem.children(".notes")) {
-                options.anim.notes = elem.children(".notes");
-                elem.remove(".notes");
-            }*/
-            animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
+            elem.children(".notes").length && (options.anim.notes = elem.children(".notes"), 
+            elem.children(".notes").remove(), console.log(options.anim)), animationQueue.push(options.anim)), 
+            options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
                 $(this).children().each(function(key, val) {
@@ -665,16 +665,21 @@
             }, options.exit.params), options.exit._elem = elem, options.exit.start = 0 !== elem.index() ? "withprevious" : "onstep", 
             options.exit.depth = elem.parents().length - $this.depth, animationQueue.push(options.exit));
         };
-        this.innerContainer.children().each(addChildren), $(this.outerContainer).keydown(function(e) {
+        this.innerContainer.children().each(addChildren), $(window).keydown(function(e) {
             //39 is right, 37 is left
             (39 === e.which || 37 === e.which) && $this.proceed(37 === e.which);
         }), $(this.outerContainer).click(function() {
             $this.proceed();
-        }), this.presenterView = null, // Opens up a window in presenter view and fires a function at it when it's ready
+        }), window.onbeforeunload = function() {
+            $this.presenterView && $this.presenterView.close();
+        }, this.presenterView = null, // Opens up a window in presenter view and fires a function at it when it's ready
         this.openPresenterView = function(url, callback) {
-            return $this.presenterView = window.open(url, "Presenter" + location.href), $($this.presenterView.document).ready(function() {
+            return $this.presenterView && $this.presenterView.close(), $this.presenterView = window.open(url, "Presenter"), 
+            $($this.presenterView).load(function() {
                 $this.presenterView.ready($this), callback && callback($this.presenterView);
-            }), $this.presenterView;
+            }), $this.presenterView.onbeforeunload = function() {
+                $this.presenterView = null;
+            }, $this.presenterView;
         }, // Binds an function to an event (just a wrapper for the jQuery equivalent)
         this.on = function(event, callback) {
             $($this).on(event, callback);
@@ -716,8 +721,7 @@
             var extender = {};
             "undefined" != typeof length && (extender.duration = length), reverse || ($this.index += 1), 
             //nextind = $this.index + reverse ? -1 : 0;
-            //$this.trigger("animateStart", {});
-            $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
+            $this.trigger("animateStart", {}), $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
             0 === fun.delay ? $this.proceed(reverse, length, callback) : setTimeout(function() {
                 $this.proceed(reverse, length, callback);
             }, fun.delay)) : fun.run($this, reverse, extender, callback || void 0);

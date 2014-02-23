@@ -115,10 +115,11 @@ var OliverAndSwan = function(outerContainer, options) {
     container.appendTo(outerContainer);
     
     this.outerContainer = $(outerContainer);
-    this.outerContainer.attr("tabindex", 1);
     this.innerContainer = container;
     
-    //Place all floaters in the centre of the screen using
+    //Place all floaters in the centre of the screen using left and top
+    // Would much rather use a combination of translate and translate3d
+    // But this cannot be done until a fix for Webkit's gross 3D rendering is found
     container.find(".floater").each(function() {
         var left = ($this.containerWidth - $(this).width()) / 2,
             top = ($this.containerHeight - $(this).height()) / 2,
@@ -146,10 +147,14 @@ var OliverAndSwan = function(outerContainer, options) {
             elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
             options.anim.depth = elem.parents().length - $this.depth;
-            /*if (elem.children(".notes")) {
+            if (elem.children(".notes").length) {
                 options.anim.notes = elem.children(".notes");
-                elem.remove(".notes");
-            }*/
+                elem.children(".notes").remove();
+                console.log(options.anim);
+            }
+            
+            
+            
             animationQueue.push(options.anim);
         }
         
@@ -196,7 +201,7 @@ var OliverAndSwan = function(outerContainer, options) {
         });*/
     };
     this.innerContainer.children().each(addChildren);
-    $(this.outerContainer).keydown(function(e) {
+    $(window).keydown(function(e) {
         //39 is right, 37 is left
         
         if ((e.which === 39) || (e.which === 37)) {
@@ -209,13 +214,26 @@ var OliverAndSwan = function(outerContainer, options) {
         $this.proceed();
     });
     
+    window.onbeforeunload = (function(e) {
+        if ($this.presenterView) {
+            $this.presenterView.close();
+        }
+    });
+    
     this.presenterView = null;
     // Opens up a window in presenter view and fires a function at it when it's ready
     this.openPresenterView = function(url, callback) {
-        $this.presenterView = window.open(url, "Presenter" + location.href);
-        $($this.presenterView.document).ready(function() {
+        if ($this.presenterView) {
+            $this.presenterView.close();
+        }
+        
+        $this.presenterView = window.open(url, "Presenter");
+        $($this.presenterView).load(function() {
             $this.presenterView.ready($this);
             if (callback) callback($this.presenterView);
+        });
+        $this.presenterView.onbeforeunload = (function() {
+            $this.presenterView = null;
         });
         return $this.presenterView;
     };
@@ -292,7 +310,7 @@ var OliverAndSwan = function(outerContainer, options) {
         }
         
         //nextind = $this.index + reverse ? -1 : 0;
-        //$this.trigger("animateStart", {});
+        $this.trigger("animateStart", {});
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
             fun.run($this, reverse, extender);
             if (fun.delay === 0) {

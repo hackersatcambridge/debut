@@ -15,25 +15,51 @@
     </head>
     <body>
         <!-- Default presenter view template. Edit how you want -->
-        <div id="presenter-navigation">
+        <div id="presenter-view">
+            <div id="nav">
+                <a class="button">Navigate</a><a class="button">Mess About</a>
+            </div>
+            <div id="side">
+                <a class="button" id="proceed-button">Proceed</a>
+                <a class="button" id="reverse-button">Reverse</a>
+                <a class="button" id="timer-reset-button">Reset Timer</a>
+                <a class="button" id="timer-toggle-button">Pause Timer</a>
+                <div class="timer"></div>
+            </div>
             <div id="note-container">
+                <h2>Notes</h2>
+                <div class="notes">
+                </div>
             </div>
         </div>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
         <script type="application/javascript">
-            window.ready = function(presentation) {
-                var $ = window.opener.jQuery;
+            var startTime = 0;
+            ready = function(presentation) {
+                startTime = Date.now();
+                var $opener = window.opener.jQuery;
                 presentation.on("animateStart", function(e) {
-                    var i = presentation.index + 1, animation;// notes = $('<div>');
+                    var i = presentation.index, animation, notes = $('<div>');
                     
-                    while (--i) {
+                    while (i--) {
                         animation = presentation.animationQueue[i];
                         if (animation.notes) {
-                            //notes = animation.notes;
+                            notes = animation.notes;
+                            break;
                         }
                     }
+                    $(".notes").html(notes);
                     
-                    //$("#note-container").append(notes);
-                    
+                });
+                
+                $("#proceed-button").click(function() {
+                    presentation.proceed();
+                });
+                
+                $("#reverse-button").click(function() {
+                    presentation.proceed(true);
                 });
             }
         </script>
