@@ -24,7 +24,12 @@
                 <a class="button" id="reverse-button">Reverse</a>
                 <a class="button" id="timer-reset-button">Reset Timer</a>
                 <a class="button" id="timer-toggle-button">Pause Timer</a>
-                <div class="timer"></div>
+                <div class="timer">
+                    <div class="number min">0</div>
+                    <div class="label min">Minutes</div>
+                    <div class="number sec">0</div>
+                    <div class="label sec">Seconds</div>
+                </div>
             </div>
             <div id="note-container">
                 <h2>Notes</h2>
@@ -36,7 +41,7 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script>
         <script type="application/javascript">
-            var startTime = 0;
+            var startTime = 0, nowTime = 0, timerRunning = true;
             ready = function(presentation) {
                 startTime = Date.now();
                 var $opener = window.opener.jQuery;
@@ -61,6 +66,43 @@
                 $("#reverse-button").click(function() {
                     presentation.proceed(true);
                 });
+                
+                $("#timer-reset-button").click(function() {
+                    startTime = Date.now();
+                    nowTime = startTime;
+                });
+                
+                $("#timer-toggle-button").click(function() {
+                    timerRunning = !timerRunning;
+                    $(this).text((timerRunning ? "Pause" : "Play") + " Timer");
+                });
+                
+                setInterval(function() {
+                    var newNow = Date.now(), difference;
+                    if (!timerRunning) {
+                        startTime += newNow - nowTime;
+                    }
+                    nowTime = newNow;
+                    difference = nowTime - startTime;
+                    var minutes = Math.floor(difference / (1000 * 60)),
+                        seconds = Math.floor(difference / 1000 - minutes * 60);
+                    
+                    $(".number.min").text(minutes);
+                    
+                    if (minutes === 1) {
+                        $(".label.min").text("Minute");
+                    } else {
+                        $(".label.min").text("Minutes");
+                    }
+                    $(".number.sec").text(seconds);
+                    
+                    if (seconds === 1) {
+                        $(".label.sec").text("Second");
+                    } else {
+                        $(".label.sec").text("Seconds");
+                    }
+                }, 200);
+                    
             }
         </script>
     </body>

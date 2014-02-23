@@ -12,4 +12,7 @@
 #presenter-view a.button{display:inline-block;font-size:1.1em;line-height:50px;transition:background .5s;cursor:pointer;padding:0 10px;}
 #presenter-view a.button:hover{background:#555}
 #presenter-view #side{position:absolute;right:0;top:50px;bottom:200px;width:200px;background:#ccc;}
+#presenter-view #side .timer{text-align:center;}
+#presenter-view #side .timer .number{font-size:4em}
+#presenter-view #side .timer .label{font-size:.8em}
 #presenter-view #side a.button{display:block;text-align:center}
