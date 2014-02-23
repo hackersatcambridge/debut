@@ -127,7 +127,7 @@
         "default": null
     }), validTransforms[i] = toCamelCase(validTransforms[i]);
     var OliverAndSwan = function(outerContainer, options) {
-        this.innerContainer = null, this.outerContainer = null, this.index = 0;
+        this.innerContainer = null, this.outerContainer = null, this.index = 0, this.milestones = [];
         var masterWidth, masterHeight, animationQueue = this.animationQueue = [], container = $('<div class="presentation-container"></div>'), slideMaster = outerContainer, domOptions = $(outerContainer).getDOMOptions(slideMasterOptions), $this = this;
         $(outerContainer).addClass("presentation-master"), options = $.extend({}, domOptions, options), 
         this.containerHeight = options.containerHeight, this.containerWidth = this.containerHeight * options.aspectRatio, 
@@ -167,7 +167,10 @@
                 easing: "in-out"
             }, options.anim.params), options.anim.depth = elem.parents().length - $this.depth, 
             elem.children(".notes").length && (options.anim.notes = elem.children(".notes"), 
-            elem.children(".notes").remove()), animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
+            elem.children(".notes").remove()), options.anim.params.milestone && $this.milestones.push({
+                ind: animationQueue.length,
+                name: options.anim.params.milestone
+            }), animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
                 $(this).children().each(function(key, val) {
@@ -178,7 +181,10 @@
                 duration: 500,
                 easing: "in-out"
             }, options.endExit.params), options.endExit.depth = elem.parents().length - $this.depth, 
-            animationQueue.push(options.endExit));
+            options.endExit.params.milestone && $this.milestones.push({
+                ind: animationQueue.length,
+                name: options.endExit.params.milestone
+            }), animationQueue.push(options.endExit));
         }, childrenExit = function(elem) {
             var options = $(elem).getDOMOptions(presentationObjectOptions);
             elem = $(elem), options.anim && !options.exit && (options.exit = $.extend(!0, new Animation(), options.anim)), 
@@ -216,7 +222,8 @@
         this.goTo = function(index) {
             var reverse = index < $this.index;
             if (index !== $this.index) {
-                if (0 > index || index >= animationQueue.length) throw new Error("Index out of animation queue bounds");
+                //Find when the next valid "stopping point is" in front of the passed index
+                for (;animationQueue[index] && "onstep" != animationQueue[index].start; ) index++;
                 //var commonDepth = animationQueue[$this.index].depth, incrementMap = [];
                 // Loop over all of the animations without running them
                 // So we know what we have to do

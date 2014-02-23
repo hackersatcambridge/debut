@@ -17,7 +17,7 @@
         <!-- Default presenter view template. Edit how you want -->
         <div id="presenter-view">
             <div id="nav">
-                <a class="button">Navigate</a><a class="button">Mess About</a>
+                <a class="button" id="nav-button">Navigate</a><a class="button" id="mess-button">Mess About</a>
             </div>
             <div id="side">
                 <a class="button" id="proceed-button">Proceed</a>
@@ -29,6 +29,13 @@
                     <div class="label min">Minutes</div>
                     <div class="number sec">0</div>
                     <div class="label sec">Seconds</div>
+                </div>
+            </div>
+            <div id="content">
+                <div class="tab on" id="milestones">
+                </div>
+                <div class="tab" id="mess">
+                    <textarea></textarea>
                 </div>
             </div>
             <div id="note-container">
@@ -59,6 +66,16 @@
                     
                 });
                 
+                var i = 0, milestone;
+                while (milestone = presentation.milestones[i++]) {
+                    var element = $("<div class='milestone'>" + milestone.name + "</div>"),
+                        m = milestone;
+                    element.click(function() {
+                        presentation.goTo(m.ind);
+                    });
+                    $("#milestones").append(element);
+                }
+                
                 $("#proceed-button").click(function() {
                     presentation.proceed();
                 });
@@ -76,6 +93,17 @@
                     timerRunning = !timerRunning;
                     $(this).text((timerRunning ? "Pause" : "Play") + " Timer");
                 });
+                
+                $("#nav-button").click(function() {
+                    $("#content .tab").removeClass("on");
+                    $("#milestones").addClass("on");
+                });
+                
+                $("#mess-button").click(function() {
+                    $("#content .tab").removeClass("on");
+                    $("#mess").addClass("on");
+                });
+                
                 
                 setInterval(function() {
                     var newNow = Date.now(), difference;

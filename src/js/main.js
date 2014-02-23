@@ -63,6 +63,7 @@ var OliverAndSwan = function(outerContainer, options) {
     this.innerContainer = null;
     this.outerContainer = null;
     this.index = 0;
+    this.milestones = [];
     var animationQueue = this.animationQueue = [];
     
     //TODO: Clean up this mess
@@ -150,7 +151,9 @@ var OliverAndSwan = function(outerContainer, options) {
                 options.anim.notes = elem.children(".notes");
                 elem.children(".notes").remove();
             }
-            
+            if (options.anim.params.milestone) {
+                $this.milestones.push({ind: animationQueue.length, name: options.anim.params.milestone});
+            }
             
             
             animationQueue.push(options.anim);
@@ -179,6 +182,9 @@ var OliverAndSwan = function(outerContainer, options) {
         } else if (options.endExit) {
             options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
             options.endExit.depth = elem.parents().length - $this.depth;
+            if (options.endExit.params.milestone) {
+                $this.milestones.push({ind: animationQueue.length, name: options.endExit.params.milestone});
+            }
             animationQueue.push(options.endExit);
         }
     }, childrenExit = function(elem, top) {
@@ -250,9 +256,13 @@ var OliverAndSwan = function(outerContainer, options) {
     // Will do smooth animations until at lowermost required depth
     // Will then skip animations and then do smooth animations back up
     this.goTo = function(index) {
-        var reverse = index < $this.index, direction = reverse ? -1 : 1;
+        var reverse = index < $this.index, direction = reverse ? -1 : 1, animation;
         if (index === $this.index) return;
-        if ((index < 0) || (index >= animationQueue.length)) throw new Error("Index out of animation queue bounds");
+        
+        //Find when the next valid "stopping point is" in front of the passed index
+        while ((animationQueue[index]) && (animationQueue[index].start != "onstep")) {
+            index ++;
+        }
         
         //var commonDepth = animationQueue[$this.index].depth, incrementMap = [];
         
