@@ -135,7 +135,6 @@ var OliverAndSwan = function(outerContainer, options) {
     
     
     if (options.letterbox) {
-        console.log(options);
         $(this.outerContainer).addClass("letterbox");
     }
     
@@ -150,7 +149,6 @@ var OliverAndSwan = function(outerContainer, options) {
             if (elem.children(".notes").length) {
                 options.anim.notes = elem.children(".notes");
                 elem.children(".notes").remove();
-                console.log(options.anim);
             }
             
             
@@ -388,7 +386,6 @@ $.fn.getDOMOptions = function (template) {
                                 if (parsed) {
                                     //Save the inline code in a function so it is already parsed but not executed
                                     //This saves processing time when actually running the animation
-                                    console.log(parsed[1]);
                                     var fun = eval('(function(elem,context,params,callback) {' + parsed[1] + '})');
                                     options[key] = new Animation(fun, params);
                                     break;

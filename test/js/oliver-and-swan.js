@@ -11,7 +11,7 @@
         this.depth = 1, //Clone of element before animation is run
         this.domClone = null, //Element full of notes for this animation
         this.notes = null, this.run = function(context, reverse, nparams, callback) {
-            if (console.log(this._elem), !reverse && !this.domClone) {
+            if (!reverse && !this.domClone) {
                 this.domClone = $(this._elem).clone();
                 //The transforms are not carried through due to some weird quirk with Transit
                 //This is one of the only ways to actually do this
@@ -542,8 +542,7 @@
             1 === params.direction && $(elem).css({
                 x: "+=" + params.direction * leftShift,
                 y: "+=" + params.direction * topShift
-            }), //console.log({x: "+=" + (-params.direction * leftShift), y: "+=" + (-params.direction * topShift)});
-            $(elem).transit({
+            }), $(elem).transit({
                 x: "+=" + -params.direction * leftShift,
                 y: "+=" + -params.direction * topShift
             }, params.duration, params.easing, callback);
@@ -631,7 +630,7 @@
                 left: left
             });
             for (var i in validTransforms) options[validTransforms[i]] && $(this).css(validTransforms[i], options[validTransforms[i]]);
-        }), options.letterbox && (console.log(options), $(this.outerContainer).addClass("letterbox"));
+        }), options.letterbox && $(this.outerContainer).addClass("letterbox");
         var addChildren = function() {
             var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
             //Is there a need to differentiate between entrance/exit animations and modifyer animations?
@@ -642,8 +641,7 @@
                 easing: "in-out"
             }, options.anim.params), options.anim.depth = elem.parents().length - $this.depth, 
             elem.children(".notes").length && (options.anim.notes = elem.children(".notes"), 
-            elem.children(".notes").remove(), console.log(options.anim)), animationQueue.push(options.anim)), 
-            options.animChildrenStep && $(this).children().each(function(key, val) {
+            elem.children(".notes").remove()), animationQueue.push(options.anim)), options.animChildrenStep && $(this).children().each(function(key, val) {
                 (void 0 === $(val).attr("data-anim") || $(val).attr("data-anim") === !1) && $(val).attr("data-anim", elem.attr("data-anim-children-step"));
             }), $(this).children().each(addChildren), options.endExitChildren) {
                 $(this).children().each(function(key, val) {
@@ -758,7 +756,6 @@
                     parsed = attr ? attr.match(/^{([\s\S]*)}$/m) : null) {
                         //Save the inline code in a function so it is already parsed but not executed
                         //This saves processing time when actually running the animation
-                        console.log(parsed[1]);
                         var fun = eval("(function(elem,context,params,callback) {" + parsed[1] + "})");
                         options[key] = new Animation(fun, params);
                         break;
