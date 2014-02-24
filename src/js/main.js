@@ -171,8 +171,9 @@ var OliverAndSwan = function(outerContainer, options) {
     // Would much rather use a combination of translate and translate3d
     // But this cannot be done until a fix for Webkit's gross 3D rendering is found
     container.find(".floater").each(function() {
+        //Width is slightly off for every element
         var left = ($this.containerWidth - $(this).width()) / 2,
-            top = ($this.containerHeight - $(this).height()) / 2,
+            top = ($this.containerHeight - $(this).width()) / 2,
             options = $(this).getDOMOptions(presentationObjectOptions);
         $(this).css({top: top, left: left});
         
@@ -382,10 +383,10 @@ var OliverAndSwan = function(outerContainer, options) {
         $this.trigger("animateStart", {});
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
             fun.run($this, reverse, extender);
-            if (fun.delay === 0) {
+            if (((fun.delay === 0) && (reverse)) || ((animationQueue[$this.index].delay === 0) && (!reverse))) {
                 $this.proceed(reverse, length, callback);
             } else {
-                setTimeout(function() { $this.proceed(reverse, length, callback) }, fun.delay);
+                setTimeout(function() { $this.proceed(reverse, length, callback) }, reverse ? fun.delay : animationQueue[$this.index].delay);
             }
         } else {
             
@@ -482,6 +483,9 @@ $.fn.getDOMOptions = function (template) {
                             }
                             if (params.on) {
                                 options[key]._elem = $(params.on);
+                            }
+                            if (params.delay) {
+                                options[key].delay = params.delay;
                             }
                             break;
                         //If it's a string, just set it directly (is also the default type)

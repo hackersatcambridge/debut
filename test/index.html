@@ -18,12 +18,12 @@
         <div id="presentation-master" class="full" data-letterbox data-aspect-ratio="4:3">
             <div data-end-exit="slide{side:'top',duration:1500}" class="full">
                 <div data-end-exit-children="slide">
-                    <div data-anim="slide{side:'right',duration:1000}">Put this in</div>
+                    <div data-anim="slide{side:'right',duration:1000,delay:10}">Put this in</div>
                     <div class="floater" data-x="-50" data-rotate="45" data-anim="slide">This is a floater!</div>
                     <div style="position: absolute; left: 50px; top: 100px;" data-anim="slide{side:'right'}">Absolutely positioned element</div>
                     <div data-anim="appear{start:'withprevious'}">This should appear with the previous</div>
                     <div data-end-exit="slide{to:'#slideTo'}">This should go to</div>
-                    <div id="slideTest" data-anim="appear{start:'withprevious'}">This!</div>
+                    <div id="slideTest" data-anim="appear{start:'withprevious',delay:1000}">This!</div>
                     <div data-anim="transit{prop:{scale:'1,10'},on:'#slideTest'}"></div>
                     <div data-anim="fade">Hi</div>
                 </div>

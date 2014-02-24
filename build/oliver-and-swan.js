@@ -670,7 +670,8 @@
         // Would much rather use a combination of translate and translate3d
         // But this cannot be done until a fix for Webkit's gross 3D rendering is found
         container.find(".floater").each(function() {
-            var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).height()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
+            //Width is slightly off for every element
+            var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).width()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
             $(this).css({
                 top: top,
                 left: left
@@ -774,9 +775,9 @@
             "undefined" != typeof length && (extender.duration = length), reverse || ($this.index += 1), 
             //nextind = $this.index + reverse ? -1 : 0;
             $this.trigger("animateStart", {}), $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
-            0 === fun.delay ? $this.proceed(reverse, length, callback) : setTimeout(function() {
+            0 === fun.delay && reverse || 0 === animationQueue[$this.index].delay && !reverse ? $this.proceed(reverse, length, callback) : setTimeout(function() {
                 $this.proceed(reverse, length, callback);
-            }, fun.delay)) : fun.run($this, reverse, extender, callback || void 0);
+            }, reverse ? fun.delay : animationQueue[$this.index].delay)) : fun.run($this, reverse, extender, callback || void 0);
         };
         var lastTime = 0;
         this.animationFrame = function(time) {
@@ -821,7 +822,7 @@
                     }
                     options[key] = anim in animations ? new Animation(animations[anim], params) : new Animation(animations.appear, params), 
                     options[key]._elem = $(this), params.start && (options[key].start = params.start), 
-                    params.on && (options[key]._elem = $(params.on));
+                    params.on && (options[key]._elem = $(params.on)), params.delay && (options[key].delay = params.delay);
                     break;
 
                   //If it's a string, just set it directly (is also the default type)
