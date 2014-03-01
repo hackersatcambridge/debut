@@ -173,7 +173,7 @@ var OliverAndSwan = function(outerContainer, options) {
     container.find(".floater").each(function() {
         //Width is slightly off for every element
         var left = ($this.containerWidth - $(this).width()) / 2,
-            top = ($this.containerHeight - $(this).width()) / 2,
+            top = ($this.containerHeight - $(this).height()) / 2,
             options = $(this).getDOMOptions(presentationObjectOptions);
         $(this).css({top: top, left: left});
         
@@ -346,14 +346,14 @@ var OliverAndSwan = function(outerContainer, options) {
             if (((reverse) && ($this.index <= index)) || ((!reverse) && ($this.index >= index))) {
                 //Do we need to do anything here?
             } else {
-                $this.proceed(reverse, 0, proceed);
+                $this.proceed(reverse, true, proceed);
             }
         }
         
         proceed();
     };
     
-    this.proceed = function(reverse, length, callback) {
+    this.proceed = function(reverse, quick, callback) {
         var fun, type, nextind;
         
         reverse = !!reverse;
@@ -370,8 +370,8 @@ var OliverAndSwan = function(outerContainer, options) {
         fun = animationQueue[$this.index];
         type = fun.constructor.name;
         var extender = {};
-        if (typeof length !== 'undefined') {
-            extender.duration = length;
+        if (quick) {
+            extender.duration = 0;
         }
         
         
@@ -383,10 +383,10 @@ var OliverAndSwan = function(outerContainer, options) {
         $this.trigger("animateStart", {});
         if (($this.index in animationQueue) && (animationQueue[$this.index].start === "withprevious")) {
             fun.run($this, reverse, extender);
-            if (((fun.delay === 0) && (reverse)) || ((animationQueue[$this.index].delay === 0) && (!reverse))) {
-                $this.proceed(reverse, length, callback);
+            if (((fun.delay === 0) && (reverse)) || ((animationQueue[$this.index].delay === 0) && (!reverse)) || (quick)) {
+                $this.proceed(reverse, quick, callback);
             } else {
-                setTimeout(function() { $this.proceed(reverse, length, callback) }, reverse ? fun.delay : animationQueue[$this.index].delay);
+                setTimeout(function() { $this.proceed(reverse, quick, callback) }, reverse ? fun.delay : animationQueue[$this.index].delay);
             }
         } else {
             

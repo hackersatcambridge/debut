@@ -1,4 +1,4 @@
-/*! oliver-and-swan 2014-02-24 */
+/*! oliver-and-swan 2014-02-27 */
 !function(exports, global) {
     function Animation(fun, params) {
         this.params = $.extend(!0, {
@@ -197,7 +197,7 @@
         // But this cannot be done until a fix for Webkit's gross 3D rendering is found
         container.find(".floater").each(function() {
             //Width is slightly off for every element
-            var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).width()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
+            var left = ($this.containerWidth - $(this).width()) / 2, top = ($this.containerHeight - $(this).height()) / 2, options = $(this).getDOMOptions(presentationObjectOptions);
             $(this).css({
                 top: top,
                 left: left
@@ -286,11 +286,11 @@
                 // TODO: Make this function do as it says it does
                 var proceed = function() {
                     // We have reached our goal or gone past it
-                    reverse && $this.index <= index || !reverse && $this.index >= index || $this.proceed(reverse, 0, proceed);
+                    reverse && $this.index <= index || !reverse && $this.index >= index || $this.proceed(reverse, !0, proceed);
                 };
                 proceed();
             }
-        }, this.proceed = function(reverse, length, callback) {
+        }, this.proceed = function(reverse, quick, callback) {
             var fun, type;
             if (reverse = !!reverse) {
                 if ($this.index <= 0) return;
@@ -298,11 +298,10 @@
             } else if ($this.index >= animationQueue.length) return;
             fun = animationQueue[$this.index], type = fun.constructor.name;
             var extender = {};
-            "undefined" != typeof length && (extender.duration = length), reverse || ($this.index += 1), 
-            //nextind = $this.index + reverse ? -1 : 0;
+            quick && (extender.duration = 0), reverse || ($this.index += 1), //nextind = $this.index + reverse ? -1 : 0;
             $this.trigger("animateStart", {}), $this.index in animationQueue && "withprevious" === animationQueue[$this.index].start ? (fun.run($this, reverse, extender), 
-            0 === fun.delay && reverse || 0 === animationQueue[$this.index].delay && !reverse ? $this.proceed(reverse, length, callback) : setTimeout(function() {
-                $this.proceed(reverse, length, callback);
+            0 === fun.delay && reverse || 0 === animationQueue[$this.index].delay && !reverse || quick ? $this.proceed(reverse, quick, callback) : setTimeout(function() {
+                $this.proceed(reverse, quick, callback);
             }, reverse ? fun.delay : animationQueue[$this.index].delay)) : fun.run($this, reverse, extender, callback || void 0);
         };
         var lastTime = 0;
