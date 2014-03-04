@@ -1,4 +1,5 @@
 oliver-and-swan
 ===============
 
-Presentations the developer way
+Presentations framework in HTML.
+Documentation is on the way - we promise.
