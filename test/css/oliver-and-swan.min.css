@@ -1,22 +1,2 @@
-.full{position:absolute;left:0;top:0;height:100%;width:100%}
-.presentation-master{background-color:#000;overflow:hidden;perspective:8000;}
-.presentation-master .presentation-container{position:absolute;background-color:#fff;left:0;top:0}
-.presentation-master.letterbox .presentation-container{overflow:hidden}
-.presentation-master .center,.presentation-master .centre{text-align:center}
-.presentation-master .light{color:#fff}
-.presentation-master .floater{position:absolute;top:0;left:0;margin:0}
-.presentation-master .notes{display:none}
-
-#presenter-view #note-container{position:absolute;left:0;bottom:0;width:100%;height:200px}
-#presenter-view #nav{position:absolute;left:0;top:0;width:100%;height:50px;background:#333;color:#fff}
-#presenter-view a.button{display:inline-block;font-size:1.1em;line-height:50px;transition:background .5s;cursor:pointer;padding:0 10px;}
-#presenter-view a.button:hover{background:#555}
-#presenter-view #content{position:absolute;left:0;top:50px;right:200px;bottom:200px;}
-#presenter-view #content .milestone{width:90px;height:90px;margin:10px;background:#eee;padding:5px;text-align:center}
-#presenter-view #content .tab{position:absolute;left:0;top:0;width:100%;height:100%;overflow:auto;display:none;}
-#presenter-view #content .tab.on{display:block}
-#presenter-view #side{position:absolute;right:0;top:50px;bottom:200px;width:200px;background:#ccc;}
-#presenter-view #side .timer{text-align:center;}
-#presenter-view #side .timer .number{font-size:4em}
-#presenter-view #side .timer .label{font-size:.8em}
-#presenter-view #side a.button{display:block;text-align:center}
+.full{position:absolute;left:0;top:0;height:100%;width:100%}.presentation-master{background-color:#000;overflow:hidden;perspective:8000;}.presentation-master .presentation-container{position:absolute;background-color:#fff;left:0;top:0}.presentation-master.letterbox .presentation-container{overflow:hidden}.presentation-master .center,.presentation-master .centre{text-align:center}.presentation-master .light{color:#fff}.presentation-master .floater{position:absolute;top:0;left:0;margin:0}.presentation-master .notes{display:none}
+#presenter-view #note-container{position:absolute;left:0;bottom:0;width:100%;height:200px}#presenter-view #nav{position:absolute;left:0;top:0;width:100%;height:50px;background:#333;color:#fff}#presenter-view a.button{display:inline-block;font-size:1.1em;line-height:50px;transition:background .5s;cursor:pointer;padding:0 10px;}#presenter-view a.button:hover{background:#555}#presenter-view #content{position:absolute;left:0;top:50px;right:200px;bottom:200px;}#presenter-view #content .milestone{width:90px;height:90px;margin:10px;background:#eee;padding:5px;text-align:center}#presenter-view #content .tab{position:absolute;left:0;top:0;width:100%;height:100%;overflow:auto;display:none;}#presenter-view #content .tab.on{display:block}#presenter-view #side{position:absolute;right:0;top:50px;bottom:200px;width:200px;background:#ccc;}#presenter-view #side .timer{text-align:center;}#presenter-view #side .timer .number{font-size:4em}#presenter-view #side .timer .label{font-size:.8em}#presenter-view #side a.button{display:block;text-align:center}

@@ -196,7 +196,7 @@ var OliverAndSwan = function(outerContainer, options) {
     var addChildren = function() {
         var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
         if (options.anim) {
-            elem.css('opacity', 0);
+            if (!options.anim.params.nohide) elem.css('opacity', 0);
             options.anim.params = $.extend({}, {direction: 1, duration: 500, easing: "in-out"}, options.anim.params);
             options.anim.depth = elem.parents().length - $this.depth;
             if (elem.children(".notes").length) {
@@ -234,6 +234,10 @@ var OliverAndSwan = function(outerContainer, options) {
         } else if (options.endExit) {
             options.endExit.params = $.extend({}, {direction: -1, duration: 500, easing: "in-out"}, options.endExit.params);
             options.endExit.depth = elem.parents().length - $this.depth;
+            if ((elem.children(".notes").length) && (!options.anim)) {
+                options.endExit.notes = elem.children(".notes");
+                elem.children(".notes").remove();
+            }
             if (options.endExit.params.milestone) {
                 $this.milestones.push({ind: animationQueue.length, name: options.endExit.params.milestone});
             }

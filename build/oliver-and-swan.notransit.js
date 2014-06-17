@@ -1,4 +1,4 @@
-/*! oliver-and-swan 2014-02-27 */
+/*! oliver-and-swan 2014-06-17 */
 !function(exports, global) {
     function Animation(fun, params) {
         this.params = $.extend(!0, {
@@ -208,7 +208,7 @@
             var options = $(this).getDOMOptions(presentationObjectOptions), elem = $(this);
             //Is there a need to differentiate between entrance/exit animations and modifyer animations?
             //For the time being, one can just use data-exit to stop modifyer animations from being executed on childrenExit
-            if (options.anim && (elem.css("opacity", 0), options.anim.params = $.extend({}, {
+            if (options.anim && (options.anim.params.nohide || elem.css("opacity", 0), options.anim.params = $.extend({}, {
                 direction: 1,
                 duration: 500,
                 easing: "in-out"
@@ -228,7 +228,8 @@
                 duration: 500,
                 easing: "in-out"
             }, options.endExit.params), options.endExit.depth = elem.parents().length - $this.depth, 
-            options.endExit.params.milestone && $this.milestones.push({
+            elem.children(".notes").length && !options.anim && (options.endExit.notes = elem.children(".notes"), 
+            elem.children(".notes").remove()), options.endExit.params.milestone && $this.milestones.push({
                 ind: animationQueue.length,
                 name: options.endExit.params.milestone
             }), animationQueue.push(options.endExit));
