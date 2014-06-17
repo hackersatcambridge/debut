@@ -1,0 +1,21 @@
+{
+  "name": "oliver-and-swan",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Pinpickle/oliver-and-swan",
+  "authors": [
+    "Christian Silver <christian@decode.org.nz>"
+  ],
+  "main": [
+    "build/oliver-and-swan.min.css",
+    "build/oliver-and-swan.min.js"
+  ],
+  "description": "HTML Presentation Framework",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
