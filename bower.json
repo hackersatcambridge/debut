@@ -1,0 +1,22 @@
+{
+  "name": "debut",
+  "version": "0.0.5",
+  "authors": [
+    "Christian Silver <christian@decode.org.nz>"
+  ],
+  "description": "HTML Presentation Framework",
+  "main": "dist/debut.min.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
