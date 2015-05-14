@@ -5,6 +5,18 @@ Give your ideas the limelight.
 
 **Disclaimer:** This readme is currently serving as a design document so this is non-functional.
 
+Communicating our ideas effectively and convincingly is extremely important with today's fast-paced way of living. But when it comes to the ways we give presentations, we're still stuck in an old-school way of thinking.
+
+## Slides are the Problem
+
+We still think of a presentation as a series of slides. *Sure*, we can add a bunch of animations to it, but at the end of the day we still jump from one slide to the next.
+
+Yes - some new age ideas have emerged recently. The infinite canvas method showcased by [Prezi](http://prezi.com) is very innovative, but its just another singular approach to presentations that we can get stuck in.
+
+What if we had a blank canvas, and you have a series of animations that get executed?
+
+Add some default styles and useful animations, and you could have yourself an infinite canvas "Prezi" style presentation, or a typical slides based presentation. Or anything that represents your ideas. Give them what they deserve.
+
 # Programatic API (JS)
 
 ## Examples
@@ -31,7 +43,7 @@ presentation.step('.section-1 h1', 'slide', { duration: 500, from: 'top' }) // S
       duration: 500, 
       values: { scale: 2 }
     }) // At the same time
-	.activate(); // Start the presentation and manipulate all of the DOM stuff
+  .activate(); // Start the presentation and manipulate all of the DOM stuff
 ```
 
 ## Debut Object
