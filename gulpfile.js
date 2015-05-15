@@ -34,15 +34,38 @@ gulp.task('css', function () {
     .pipe($.if(isDist, gulp.dest('dist')));
 });
 
-// Compile JS modules into a single JS file
+/**
+ * Compile JS files into a single bundle.
+ * We are doing bad, bad things with this for the sake of UMD.
+ * All externals are globals (inside the scope of the library).
+ * One day, someone will figure this out.
+ */
 gulp.task('js', function () {
-  return browserify('lib/main.js', {
-      standalone: 'Debut'
-    })
+  return browserify('lib/main.js')
     .transform(babelify)
     .bundle()
     .pipe(source('debut.js'))
     .pipe(buffer())
+    .pipe($.umd({
+      dependencies: function () {
+        return [
+          {
+            name: 'jQuery',
+            amd: 'jquery',
+            cjs: 'jquery',
+            global: 'jQuery',
+            param: 'jQuery'
+          }
+        ];
+      },
+      exports: function () {
+        return '__debut';
+      },
+      namespace: function () {
+        return 'Debut';
+      },
+      template: path.join(__dirname, 'umdTemplate.js')
+    }))
     .pipe(gulp.dest('dist'))
     .pipe(bs.reload({ stream: true }))
     .pipe($.if(isDist, $.rename('debut.min.js')))
