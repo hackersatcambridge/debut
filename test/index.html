@@ -3,9 +3,13 @@
     <link href="debut.css" rel="stylesheet" />
   </head>
   <body>
+    <div class="presentation">
+    </div>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
     <script src="debut.js"></script>
     <script>
-      var presentation = new Debut();
+      var presentation = new Debut($('.presentation')[0]);
     </script>
   </body>
 </html>

@@ -25,6 +25,7 @@ gulp.task('css', function () {
     .pipe($.plumber({
         errorHandler: onError
     }))
+    .pipe($.less())
     .pipe($.autoprefixer({cascade: false}))
     .pipe($.rename('debut.css'))
     .pipe(gulp.dest('dist'))
@@ -44,6 +45,7 @@ gulp.task('js', function () {
   return browserify('lib/main.js')
     .transform(babelify)
     .bundle()
+    .on('error', onError)
     .pipe(source('debut.js'))
     .pipe(buffer())
     .pipe($.umd({
@@ -55,6 +57,12 @@ gulp.task('js', function () {
             cjs: 'jquery',
             global: 'jQuery',
             param: 'jQuery'
+          }, {
+            name: 'transit',
+            amd: 'jquery.transit',
+            cjs: 'jquery.transit',
+            global: 'jQuery.transit',
+            param: '__transit'
           }
         ];
       },
