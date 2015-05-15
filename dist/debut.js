@@ -40,7 +40,8 @@ var Animation = function Animation(definition, options) {
   this.element = this.options.element;
   this.$element = $(this.element);
   this.direction = this.options.direction;
-  this.isOnDOM = this.element instanceof HTMLElement;
+  this.isJQuery = this.element instanceof $;
+  this.isOnDOM = this.element instanceof HTMLElement || this.isJQuery; // Not always true but we will continue
   this.beforeState = {};
 
   if (this.options.entrance && this.isOnDOM && this.direction === 1) {
@@ -49,9 +50,6 @@ var Animation = function Animation(definition, options) {
 };
 
 Animation.prototype.run = function run(context, callback) {
-  context.animation = this;
-  context.options = this.options;
-
   if (this.definition.beforeState) {
     this.definition.beforeState.call(this, context);
   }
@@ -65,7 +63,8 @@ Animation.defaultOptions = {
   delay: 0,
   start: 'step',
   element: null,
-  entrance: false
+  entrance: false,
+  direction: 1
 };
 
 Animation.animations = _animations2['default'];
@@ -88,14 +87,14 @@ var animations = {};
  */
 animations.appear = function (context, callback) {
   if (context.direction === 1) {
-    this.element.css('visibility', '');
+    this.$element.css('visibility', '');
   } else {
-    this.element.css('visibility', this.beforeState.visibility);
+    this.$element.css('visibility', this.beforeState.visibility);
   }
 };
 
 animations.appear.beforeState = function beforeState(context) {
-  this.beforeState.visibility = this.element.css('visibility');
+  this.beforeState.visibility = this.$element.css('visibility');
 };
 
 animations.appear.defaultOptions = {
@@ -142,6 +141,7 @@ var Debut = function Debut(element, options) {
   this.bounds = {};
 
   this.animationQueue = [];
+  this.animationIndex = 0;
 
   if (this.options.full) {
     this.$.container.addClass('debut-full');
@@ -183,14 +183,27 @@ Debut.prototype.resize = function resize(event) {
  * Adds an animation to the animation queue
  */
 Debut.prototype.step = function step(element, animation, options) {
-  if (typeof element === 'String') {
+  if (typeof element === 'string') {
     element = $(element)[0];
   }
 
   animation = Debut.animations[animation];
-  animation = new _animation2['default']($.extend({}, { element: element }, options));
+  animation = new _animation2['default'](animation, $.extend({}, { element: element }, options));
 
   this.animationQueue.push(animation);
+};
+
+/**
+ * Proceed to the next state of the presentation
+ */
+Debut.prototype.next = function next() {
+  var animation = this.animationQueue[this.animationIndex];
+  var context = {
+    debut: this,
+    direction: animation.direction
+  };
+  animation.run(context, function () {});
+  this.animationIndex += 1;
 };
 
 Debut.defaultOptions = {
