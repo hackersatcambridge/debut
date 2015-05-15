@@ -135,10 +135,9 @@ var Debut = function Debut(element, options) {
   this.$.container = $(this.elements.container);
 
   this.$.container.addClass('debut-container');
-  this.$.innerContainer = $('<div class="debut-container-inner">');
+  this.$.innerContainer = this.$.container.wrapInner('<div class="debut-container-inner">').children();
   this.$.innerContainer.css({ width: this.options.baseWidth, height: this.options.baseWidth / this.options.aspect });
   this.elements.innerContainer = this.$.innerContainer[0];
-  this.$.container.append(this.$.innerContainer);
 
   this.bounds = {};
 
