@@ -15,9 +15,111 @@ var __debut;
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _animations = require('./animations');
+
+var _animations2 = _interopRequireDefault(_animations);
+
+var $ = jQuery;
+
+/**
+ * The Animation object represents a single animation in the animation queue.
+ * It contains all options for a single animation, such as the kind of animation, and the direction it is going in.
+ * It is responsible for running an animation, and eventually getting a callback back to the Debut instance
+ */
+var Animation = function Animation(definition, options) {
+  this.options = $.extend(Animation.defaultOptions, definition.defaultOptions || {}, options);
+  this.definition = definition;
+
+  this.easing = this.options.easing;
+  this.duration = this.options.duration;
+  this.delay = this.options.delay;
+  this.start = this.options.start;
+  this.element = this.options.element;
+  this.$element = $(this.element);
+  this.direction = this.options.direction;
+  this.isOnDOM = this.element instanceof HTMLElement;
+  this.beforeState = {};
+
+  if (this.options.entrance && this.isOnDOM && this.direction === 1) {
+    this.$element.css('visibility', 'hidden');
+  }
+};
+
+Animation.prototype.run = function run(context, callback) {
+  context.animation = this;
+  context.options = this.options;
+
+  if (this.definition.beforeState) {
+    this.definition.beforeState.call(this, context);
+  }
+
+  this.definition.call(this, context, callback);
+};
+
+Animation.defaultOptions = {
+  easing: 'easeInOutCubic',
+  duration: 500,
+  delay: 0,
+  start: 'step',
+  element: null,
+  entrance: false
+};
+
+Animation.animations = _animations2['default'];
+
+exports['default'] = Animation;
+module.exports = exports['default'];
+
+},{"./animations":2}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+var $ = jQuery;
+
+var animations = {};
+
+/**
+ * The appear animation is the most simple. All it does is make the element appear
+ */
+animations.appear = function (context, callback) {
+  if (context.direction === 1) {
+    this.element.css('visibility', '');
+  } else {
+    this.element.css('visibility', this.beforeState.visibility);
+  }
+};
+
+animations.appear.beforeState = function beforeState(context) {
+  this.beforeState.visibility = this.element.css('visibility');
+};
+
+animations.appear.defaultOptions = {
+  entrance: true
+};
+
+exports['default'] = animations;
+module.exports = exports['default'];
+
+},{}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _animation = require('./animation');
+
+var _animation2 = _interopRequireDefault(_animation);
+
 // Reminder: All external dependencies are globals
 var $ = jQuery;
-console.log($);
 
 /**
  * The primary Debut object is responsible for handling the presentation.
@@ -39,6 +141,8 @@ var Debut = function Debut(element, options) {
   this.$.container.append(this.$.innerContainer);
 
   this.bounds = {};
+
+  this.animationQueue = [];
 
   if (this.options.full) {
     this.$.container.addClass('debut-full');
@@ -83,17 +187,20 @@ Debut.defaultOptions = {
   baseWidth: 1600
 };
 
+Debut.Animation = _animation2['default'];
+Debut.animations = _animation2['default'].animations;
+
 exports['default'] = Debut;
 module.exports = exports['default'];
 
-},{}],2:[function(require,module,exports){
+},{"./animation":1}],4:[function(require,module,exports){
 // The __debut variable is defined in the context of the whole module definition
 // Which allows it to export the debut object
 'use strict';
 
 __debut = require('./debut'); // jshint ignore:line
 
-},{"./debut":1}]},{},[2]);
+},{"./debut":3}]},{},[4]);
 
 return __debut;
 }));
