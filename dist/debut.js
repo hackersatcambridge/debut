@@ -180,6 +180,20 @@ Debut.prototype.resize = function resize(event) {
   this.$.innerContainer.css({ scale: scale, top: top, left: left });
 };
 
+/**
+ * Adds an animation to the animation queue
+ */
+Debut.prototype.step = function step(element, animation, options) {
+  if (typeof element === 'String') {
+    element = $(element)[0];
+  }
+
+  animation = Debut.animations[animation];
+  animation = new _animation2['default']($.extend({}, { element: element }, options));
+
+  this.animationQueue.push(animation);
+};
+
 Debut.defaultOptions = {
   full: true,
   fullscreen: false,
