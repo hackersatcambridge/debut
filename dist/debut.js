@@ -25,6 +25,8 @@ var _animations2 = _interopRequireDefault(_animations);
 var $ = jQuery;
 
 /**
+ * @constructor
+ *
  * The Animation object represents a single animation in the animation queue.
  * It contains all options for a single animation, such as the kind of animation, and the direction it is going in.
  * It is responsible for running an animation, and eventually getting a callback back to the Debut instance
@@ -42,19 +44,45 @@ var Animation = function Animation(definition, options) {
   this.direction = this.options.direction;
   this.isJQuery = this.element instanceof $;
   this.isOnDOM = this.element instanceof HTMLElement || this.isJQuery; // Not always true but we will continue
-  this.beforeState = {};
+  this.firstRun = true;
+  this.store = {};
 
-  if (this.options.entrance && this.isOnDOM && this.direction === 1) {
+  if (this.isHidden() && this.direction === 1) {
     this.$element.css('visibility', 'hidden');
   }
 };
 
 Animation.prototype.run = function run(context, callback) {
-  if (this.definition.beforeState) {
+  if (!this.firstRun && !context.reversed && this.definition.beforeState) {
     this.definition.beforeState.call(this, context);
   }
 
+  if (this.definition.prepare) {
+    this.definition.prepare.call(this, context);
+  }
+
+  if (this.isHidden()) {
+    if (context.direction === 1) {
+      this.$element.css('visibility', '');
+    } else {
+      var oldCallback = callback;
+      callback = (function callback() {
+        this.$element.css('visibility', 'hidden');
+        oldCallback();
+      }).bind(this);
+    }
+  }
+
   this.definition.call(this, context, callback);
+};
+
+/**
+ * Determine if the animation should toggle the visibility state of the object.
+ *
+ * @returns {bool} Whether the animation should toggle the visibility state.
+ */
+Animation.prototype.isHidden = function isHidden() {
+  return this.isOnDOM && this.options.entrance;
 };
 
 Animation.defaultOptions = {
@@ -73,9 +101,9 @@ exports['default'] = Animation;
 module.exports = exports['default'];
 
 },{"./animations":2}],2:[function(require,module,exports){
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var $ = jQuery;
@@ -83,26 +111,22 @@ var $ = jQuery;
 var animations = {};
 
 /**
- * The appear animation is the most simple. All it does is make the element appear
+ * The appear animation is the most simple. All it does is make the element appear.
+ * The logic is empty because animations naturally handle hiding and showing entrance animations.
  */
 animations.appear = function (context, callback) {
-  if (context.direction === 1) {
-    this.$element.css('visibility', '');
-  } else {
-    this.$element.css('visibility', this.beforeState.visibility);
-  }
+  setTimeout(callback.bind(this), this.duration);
 };
 
-animations.appear.beforeState = function beforeState(context) {
-  this.beforeState.visibility = this.$element.css('visibility');
-};
+animations.appear.beforeState = function beforeState(context) {};
 
 animations.appear.defaultOptions = {
-  entrance: true
+  entrance: true,
+  duration: 0
 };
 
-exports['default'] = animations;
-module.exports = exports['default'];
+exports["default"] = animations;
+module.exports = exports["default"];
 
 },{}],3:[function(require,module,exports){
 'use strict';
@@ -191,19 +215,45 @@ Debut.prototype.step = function step(element, animation, options) {
   animation = new _animation2['default'](animation, $.extend({}, { element: element }, options));
 
   this.animationQueue.push(animation);
+
+  return this;
 };
 
 /**
  * Proceed to the next state of the presentation
  */
 Debut.prototype.next = function next() {
+  this.proceed(1);
+};
+
+/**
+ * Proceed to the previous state of the presentation
+ */
+Debut.prototype.prev = function prev() {
+  this.proceed(-1);
+};
+
+/**
+ * Go forwards or backwards in the presentation state
+ */
+Debut.prototype.proceed = function proceed(direction) {
+  if (direction === -1) {
+    this.animationIndex -= 1;
+  }
+
   var animation = this.animationQueue[this.animationIndex];
+
+  if (direction === 1) {
+    this.animationIndex += 1;
+  }
+
   var context = {
     debut: this,
-    direction: animation.direction
+    direction: animation.direction * direction,
+    reversed: direction === -1
   };
+
   animation.run(context, function () {});
-  this.animationIndex += 1;
 };
 
 Debut.defaultOptions = {
