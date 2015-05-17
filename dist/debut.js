@@ -53,8 +53,9 @@ var Animation = function Animation(definition, options) {
 };
 
 Animation.prototype.run = function run(context, callback) {
-  if (!this.firstRun && !context.reversed && this.definition.beforeState) {
+  if (this.firstRun && !context.reversed && this.definition.beforeState) {
     this.definition.beforeState.call(this, context);
+    this.firstRun = false;
   }
 
   if (this.definition.prepare) {
@@ -125,6 +126,67 @@ animations.appear.defaultOptions = {
   duration: 0
 };
 
+/**
+ * Slides the element in from a side of the screen
+ */
+animations.slide = function slide(context, callback) {
+  this.$element.transit({
+    x: "+=" + -context.direction * this.store.leftShift,
+    y: "+=" + -context.direction * this.store.topShift
+  }, this.options.duration, this.options.easing, callback);
+};
+
+animations.slide.prepare = function prepare(context) {
+  var leftShift = 0;
+  var topShift = 0;
+
+  if (context.direction === 1) {
+    console.log("I do");
+    this.$element.css({
+      x: this.store.x,
+      y: this.store.y
+    });
+  }
+
+  var position = context.debut.offset(this.$element);
+
+  switch (this.options.from) {
+    default:
+    case "left":
+      leftShift = -(this.$element.width() + position.left);
+      break;
+    case "right":
+      leftShift = context.debut.bounds.visibleWidth - position.left;
+      break;
+    case "top":
+      topShift = -(this.$element.height() + position.top);
+      break;
+    case "bottom":
+      topShift = context.debut.bounds.visibleHeight - position.top;
+      break;
+  }
+
+  if (context.direction === 1) {
+    this.$element.css({
+      x: "+=" + context.direction * leftShift,
+      y: "+=" + context.direction * topShift
+    });
+  }
+
+  this.store.leftShift = leftShift;
+  this.store.topShift = topShift;
+};
+
+animations.slide.beforeState = function beforeState(context) {
+  this.store.x = this.$element.css("x");
+  this.store.y = this.$element.css("y");
+};
+
+animations.slide.defaultOptions = {
+  entrance: true,
+  from: "left"
+};
+
 exports["default"] = animations;
 module.exports = exports["default"];
 
@@ -186,21 +248,25 @@ Debut.prototype.resize = function resize(event) {
   this.bounds.outerHeight = this.$.container.height();
   this.bounds.aspect = this.bounds.outerWidth / this.bounds.outerHeight;
 
-  var scale;
-  var left;
-  var top;
-
-  if (this.bounds.aspect > this.options.aspect) {
-    scale = this.bounds.outerHeight / (this.options.baseWidth / this.options.aspect);
-    top = 0;
-    left = (this.bounds.outerWidth - this.options.baseWidth * scale) / 2;
+  if (this.options.letterbox) {
+    this.bounds.visibleWidth = this.bounds.width;
+    this.bounds.visibleHeight = this.bounds.height;
   } else {
-    scale = this.bounds.outerWidth / this.options.baseWidth;
-    top = (this.bounds.outerHeight - this.options.baseWidth / this.options.aspect * scale) / 2;
-    left = 0;
+    this.bounds.visibleWidth = this.bounds.outerWidth;
+    this.bounds.visibleHeight = this.bounds.outerHeight;
   }
 
-  this.$.innerContainer.css({ scale: scale, top: top, left: left });
+  if (this.bounds.aspect > this.options.aspect) {
+    this.bounds.scale = this.bounds.outerHeight / (this.options.baseWidth / this.options.aspect);
+    this.bounds.top = 0;
+    this.bounds.left = (this.bounds.outerWidth - this.options.baseWidth * this.bounds.scale) / 2;
+  } else {
+    this.bounds.scale = this.bounds.outerWidth / this.options.baseWidth;
+    this.bounds.top = (this.bounds.outerHeight - this.options.baseWidth / this.options.aspect * this.bounds.scale) / 2;
+    this.bounds.left = 0;
+  }
+
+  this.$.innerContainer.css({ scale: this.bounds.scale, top: this.bounds.top, left: this.bounds.left });
 };
 
 /**
@@ -256,11 +322,32 @@ Debut.prototype.proceed = function proceed(direction) {
   animation.run(context, function () {});
 };
 
+/**
+ * Determines the offset of an element in presentation coordinates
+ *
+ * @returns {Object} offset - Object containing coordinates
+ * @returns {Number} offset.left - The left offset in pixels
+ * @returns {Number} offset.right - The right offset in pixels
+ */
+Debut.prototype.offset = function offset(element) {
+  if (!(element instanceof $)) {
+    element = $(element);
+  }
+
+  var offset = element.offset();
+
+  offset.left = (offset.left - this.bounds.left) / this.bounds.scale;
+  offset.top = (offset.top - this.bounds.top) / this.bounds.scale;
+
+  return offset;
+};
+
 Debut.defaultOptions = {
   full: true,
   fullscreen: false,
   aspect: 16 / 9,
-  baseWidth: 1600
+  baseWidth: 1600,
+  letterbox: true
 };
 
 Debut.Animation = _animation2['default'];
