@@ -5,6 +5,7 @@
   <body>
     <div class="presentation">
       <div class="to-appear">Hi!</div>
+      <div class="to-appear-2">Hello</div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
@@ -12,7 +13,9 @@
     <script>
       var presentation = new Debut($('.presentation')[0]);
 
-      presentation.step('.to-appear', 'slide', { from: 'right' });
+      presentation
+        .step('.to-appear', 'slide', { from: 'right' })
+        .step('.to-appear-2', 'slide', { from: 'bottom' });
     </script>
   </body>
 </html>

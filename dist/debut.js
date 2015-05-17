@@ -32,7 +32,7 @@ var $ = jQuery;
  * It is responsible for running an animation, and eventually getting a callback back to the Debut instance
  */
 var Animation = function Animation(definition, options) {
-  this.options = $.extend(Animation.defaultOptions, definition.defaultOptions || {}, options);
+  this.options = $.extend({}, Animation.defaultOptions, definition.defaultOptions || {}, options);
   this.definition = definition;
 
   this.easing = this.options.easing;
