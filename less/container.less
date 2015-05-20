@@ -5,6 +5,8 @@
 .debut-container {
   background: #000;
 
+  overflow: hidden;
+
   &.debut-full {
     position: absolute;
     left: 0;
@@ -22,4 +24,8 @@
   background-color: #fff;
 
   transform-origin: 0 0;
+
+  .debut-letterbox & {
+    overflow: hidden;
+  }
 }

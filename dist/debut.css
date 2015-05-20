@@ -6,6 +6,7 @@
    ========================================================================== */
 .debut-container {
   background: #000;
+  overflow: hidden;
 }
 .debut-container.debut-full {
   position: absolute;
@@ -22,4 +23,7 @@
   -webkit-transform-origin: 0 0;
   -ms-transform-origin: 0 0;
   transform-origin: 0 0;
+}
+.debut-letterbox .debut-container-inner {
+  overflow: hidden;
 }

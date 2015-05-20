@@ -220,11 +220,10 @@ var Debut = function Debut(element, options) {
   this.$.container = $(this.elements.container);
 
   this.$.container.addClass('debut-container');
+  this.$.container.attr('tabindex', '1');
   this.$.innerContainer = this.$.container.wrapInner('<div class="debut-container-inner">').children();
   this.$.innerContainer.css({ width: this.options.baseWidth, height: this.options.baseWidth / this.options.aspect });
   this.elements.innerContainer = this.$.innerContainer[0];
-
-  this.$.container.click(this.next.bind(this));
 
   this.bounds = {};
 
@@ -235,8 +234,11 @@ var Debut = function Debut(element, options) {
     this.$.container.addClass('debut-full');
   }
 
-  this.resize();
-  $(window).on('resize', this.resize.bind(this));
+  if (this.options.letterbox) {
+    this.$.container.addClass('debut-letterbox');
+  }
+
+  this._addEventListeners();
 };
 
 /**
@@ -269,6 +271,34 @@ Debut.prototype.resize = function resize(event) {
   }
 
   this.$.innerContainer.css({ scale: this.bounds.scale, top: this.bounds.top, left: this.bounds.left });
+};
+
+/**
+ * Listens to relevant events and binds callbacks
+ * @private
+ */
+Debut.prototype._addEventListeners = function addEventListeners() {
+  var self = this;
+  this.resize();
+  $(window).on('resize', this.resize.bind(this));
+
+  this.$.container.click(this.next.bind(this));
+
+  if (this.options.keys) {
+    this.$.container.keyup((function (e) {
+      this.options.keys.next.forEach(function (key) {
+        if (e.which === key) {
+          self.next();
+        }
+      });
+
+      this.options.keys.prev.forEach(function (key) {
+        if (e.which === key) {
+          self.prev();
+        }
+      });
+    }).bind(this));
+  }
 };
 
 /**
@@ -366,8 +396,12 @@ Debut.defaultOptions = {
   full: true,
   fullscreen: false,
   aspect: 16 / 9,
-  baseWidth: 1600,
-  letterbox: true
+  baseWidth: 1000,
+  letterbox: true,
+  keys: {
+    next: [39 /* Right Arrow */, 34 /* Page Down */],
+    prev: [37 /* Left Arrow */, 33 /* Page Up */]
+  }
 };
 
 Debut.Animation = _animation2['default'];
