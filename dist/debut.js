@@ -402,6 +402,13 @@ Debut.prototype.proceed = function proceed(direction, ind) {
 
   if (animationMode == 'after') {
     callback = this.proceed.bind(this, direction, ind);
+    var refAnimation = direction === 1 ? otherAnimation : animation;
+    if (refAnimation.delay > 0) {
+      var oldCallback = callback;
+      callback = function () {
+        setTimeout(oldCallback, refAnimation.delay);
+      };
+    }
   }
 
   var context = {
