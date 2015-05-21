@@ -41,7 +41,7 @@ var Animation = function Animation(definition, options) {
   this.start = this.options.start;
   this.element = this.options.element;
   this.$element = $(this.element);
-  this.direction = this.options.direction;
+  this.direction = this.options.direction * (this.options.reverse ? -1 : 1);
   this.isJQuery = this.element instanceof $;
   this.isOnDOM = this.element instanceof HTMLElement || this.isJQuery; // Not always true but we will continue
   this.firstRun = true;
@@ -95,6 +95,7 @@ Animation.defaultOptions = {
   start: 'step',
   element: null,
   entrance: false,
+  reverse: false,
   direction: 1
 };
 
@@ -398,7 +399,7 @@ Debut.prototype.proceed = function proceed(direction, ind) {
   var callback;
 
   if (animationMode == 'after') {
-    callback = this.proceed.bind(this, [direction, ind]);
+    callback = this.proceed.bind(this, direction, ind);
   }
 
   var context = {

@@ -7,6 +7,7 @@
       <div class="to-appear">Hi!</div>
       <div class="to-appear-with">Hello!</div>
       <div class="to-appear-2">Hello</div>
+      <div class="to-appear-with-2">Hellos</div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
@@ -16,8 +17,10 @@
 
       presentation
         .step('.to-appear', 'slide', { from: 'right' })
-        .and('.to-appear-with', 'appear')
-        .step('.to-appear-2', 'slide', { from: 'bottom' });
+          .then('.to-appear-with', 'appear')
+        .step('.to-appear-2', 'slide', { from: 'bottom' })
+          .and('.to-appear-with-2', 'slide', { from: 'top', duration: 1000 })
+          .then('.to-appear', 'slide', { from: 'bottom', reverse: true });
     </script>
   </body>
 </html>
