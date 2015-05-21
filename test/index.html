@@ -5,6 +5,7 @@
   <body>
     <div class="presentation">
       <div class="to-appear">Hi!</div>
+      <div class="to-appear-with">Hello!</div>
       <div class="to-appear-2">Hello</div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -15,6 +16,7 @@
 
       presentation
         .step('.to-appear', 'slide', { from: 'right' })
+        .and('.to-appear-with', 'appear')
         .step('.to-appear-2', 'slide', { from: 'bottom' });
     </script>
   </body>
