@@ -73,8 +73,8 @@ Where `context` is an object with the following properties:
 ```js
 {
   debut: Object, // Debut Instance
-  animating: Object, // Object to be animating over (can be null)
-  options: Object // Generic options and animation options
+  reversed: Boolean, // Whether the current animation is playing backwards (along the animation queue)
+  direction: Number // Direction the animation is playing in (with respect to the animation definition) - reversed is taken into account
 }
 ```
 
@@ -87,7 +87,8 @@ The `options` object passes options to the animation object. There is a set of o
   duration: Number, // Duration of animation in ms. Animations don't have to respect it
   start: String, // Either 'step' (start on next click), 'with' (start at the same time as the last one), 'after' (start as the previous animation finishes)
   delay: Number, // Delay before the animation starts in ms
-	direction: Number // Whether to play this animation forwards or backwards. -1 for backwards, 1 for forwards (default is 1)
+  direction: Number, // Whether to play this animation forwards or backwards. -1 for backwards, 1 for forwards (default is 1)
+  reversed: Boolean // Alternate way of specifying direction (default is false)
 }
 ```
 
