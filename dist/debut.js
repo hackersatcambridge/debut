@@ -144,7 +144,6 @@ animations.slide.prepare = function prepare(context) {
   var topShift = 0;
 
   if (context.direction === 1) {
-    console.log("I do");
     this.$element.css({
       x: this.store.x,
       y: this.store.y
@@ -432,10 +431,8 @@ Debut.prototype.proceed = function proceed(direction, ind) {
           // If this animation was delayed when going forwards,
           // Going backwards, the previous animation needs to be delayed
           var delay = Math.max(animation.delay + animation.duration - otherAnimation.duration, 0);
-          console.log(delay, animation, otherAnimation);
           setTimeout(this.proceed.bind(this, direction, ind), delay);
         } else {
-          console.log('whoa');
           this.proceed(direction, ind);
         }
       }
