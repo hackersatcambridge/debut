@@ -25,11 +25,12 @@ var _animations2 = _interopRequireDefault(_animations);
 var $ = jQuery;
 
 /**
- * @constructor
  *
  * The Animation object represents a single animation in the animation queue.
  * It contains all options for a single animation, such as the kind of animation, and the direction it is going in.
  * It is responsible for running an animation, and eventually getting a callback back to the Debut instance
+ *
+ * @constructor Animation
  */
 var Animation = function Animation(definition, options) {
   this.options = $.extend({}, Animation.defaultOptions, definition.defaultOptions || {}, options);
@@ -210,6 +211,8 @@ var $ = jQuery;
 
 /**
  * The primary Debut object is responsible for handling the presentation.
+ *
+ * @constructor Debut
  */
 var Debut = function Debut(element, options) {
   // Store jQuery objects for later reference
@@ -226,6 +229,8 @@ var Debut = function Debut(element, options) {
   this.$.innerContainer = this.$.container.wrapInner('<div class="debut-container-inner">').children();
   this.$.innerContainer.css({ width: this.options.baseWidth, height: this.options.baseWidth / this.options.aspect });
   this.elements.innerContainer = this.$.innerContainer[0];
+
+  this._presenterView = null;
 
   this.bounds = {};
 
@@ -280,25 +285,46 @@ Debut.prototype.resize = function resize(event) {
  * @private
  */
 Debut.prototype._addEventListeners = function addEventListeners() {
-  var self = this;
   this.resize();
   $(window).on('resize', this.resize.bind(this));
 
-  this.$.container.click(this.next.bind(this));
+  // First click lets the presentation gain focus, second lets you proceed
+  this.$.container.click((function () {
+    if (this._focusState === 1) {
+      this._focusState = 0;
+    } else if (this._focusState === 0) {
+      this.next();
+    }
+  }).bind(this));
+
+  this.$.container.on('focus', (function () {
+    this._focusState = 1;
+  }).bind(this));
+
+  this.$.container.on('blur', (function () {
+    this._focusState = 2;
+  }).bind(this));
+
+  $(window).on('beforeunload', (function () {
+    if (this._presenterView) {
+      this._presenterView.close();
+    }
+  }).bind(this));
 
   if (this.options.keys) {
-    this.$.container.keyup((function (e) {
-      this.options.keys.next.forEach(function (key) {
+    var checkKeys = (function (keys, e, fn) {
+      var self = this;
+      this.options.keys[keys].forEach(function (key) {
         if (e.which === key) {
-          self.next();
+          fn.call(self);
         }
       });
+    }).bind(this);
 
-      this.options.keys.prev.forEach(function (key) {
-        if (e.which === key) {
-          self.prev();
-        }
-      });
+    this.$.container.keyup((function (e) {
+      checkKeys('next', e, this.next);
+      checkKeys('prev', e, this.prev);
+      checkKeys('presenter', e, this.openPresenterView.bind(this, this.options.presenterUrl));
     }).bind(this));
   }
 };
@@ -462,6 +488,25 @@ Debut.prototype.proceed = function proceed(direction, ind) {
 };
 
 /**
+ * Open presenter view
+ */
+Debut.prototype.openPresenterView = function openPresenterView(url) {
+  if (this._presenterView) {
+    this._presenterView.close();
+  }
+
+  this._presenterView = window.open(url, 'Debut Presenter View', 'height=400,width=400');
+
+  $(this._presenterView).load(function () {});
+
+  $(this._presenterView).on('beforeunload', (function () {
+    this._presenterView = null;
+  }).bind(this));
+
+  return this._presenterView;
+};
+
+/**
  * Get the animation for a particular index.
  *
  * @param {Number} ind - The index of the animation
@@ -504,8 +549,10 @@ Debut.defaultOptions = {
   letterbox: true,
   keys: {
     next: [39 /* Right Arrow */, 34 /* Page Down */],
-    prev: [37 /* Left Arrow */, 33 /* Page Up */]
-  }
+    prev: [37 /* Left Arrow */, 33 /* Page Up */],
+    presenter: [80]
+  },
+  presenterUrl: 'presenter.html'
 };
 
 Debut.Animation = _animation2['default'];

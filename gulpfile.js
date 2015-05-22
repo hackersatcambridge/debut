@@ -21,16 +21,24 @@ var onError = function (e) {
 
 // Compile less files into a single css file
 gulp.task('css', function () {
-  return gulp.src(['less/main.less'], {base: path.join(process.cwd(), 'less')})
+  return gulp.src(['less/main.less', 'less/presenter.less'], {base: path.join(__dirname, 'less')})
     .pipe($.plumber({
         errorHandler: onError
     }))
-    .pipe($.less())
+    .pipe($.less({
+      paths: [ path.join(__dirname, 'node_modules') ]
+    }))
     .pipe($.autoprefixer({cascade: false}))
-    .pipe($.rename('debut.css'))
+    .pipe($.rename(function (path) {
+      if (path.basename == 'main') {
+        path.basename = 'debut';
+      }
+    }))
     .pipe(gulp.dest('dist'))
     .pipe(bs.reload({ stream: true }))
-    .pipe($.if(isDist, $.rename('debut.min.css')))
+    .pipe($.if(isDist, $.rename(function (path) {
+      path.basename += '.min';
+    })))
     .pipe($.if(isDist, $.minifyCss()))
     .pipe($.if(isDist, gulp.dest('dist')));
 });
