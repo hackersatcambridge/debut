@@ -499,7 +499,7 @@ Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
     this._presenterViewWindow.close();
   }
 
-  this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=400,width=400');
+  this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=800,width=1000');
   console.log(this._presenterViewWindow);
 
   this._presenterViewWindow.onload = (function () {

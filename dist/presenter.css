@@ -1,3 +1,6 @@
+/* ==========================================================================
+   Debut Presenter View
+   ========================================================================== */
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 
 /**
@@ -423,3 +426,58 @@ th {
   padding: 0;
 }
 
+/* Variables
+   ========================================================================== */
+/* Main Stuff
+   ========================================================================== */
+.debut-presenter-view {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Arial', sans-serif;
+}
+.debut-button {
+  display: inline-block;
+  background: transparent;
+  font-size: 1.1em;
+  color: inherit;
+  border: none;
+}
+/* Top Navigation
+   ========================================================================== */
+.debut-nav {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 50px;
+  background: #333;
+  color: #fff;
+}
+.debut-button-nav {
+  height: 50px;
+  padding: 0 10px;
+  line-height: 50px;
+}
+.debut-button-nav:hover {
+  background: #444;
+}
+/* Side Navigation
+   ========================================================================== */
+.debut-side {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  bottom: 0;
+  width: 300px;
+  background: #ccc;
+}
+.debut-button-side {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  line-height: 50px;
+  text-align: center;
+}
+.debut-button-side:hover {
+  background: #ddd;
+}
