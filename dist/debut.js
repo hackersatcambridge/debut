@@ -206,6 +206,10 @@ var _animation = require('./animation');
 
 var _animation2 = _interopRequireDefault(_animation);
 
+var _presenter = require('./presenter');
+
+var _presenter2 = _interopRequireDefault(_presenter);
+
 // Reminder: All external dependencies are globals
 var $ = jQuery;
 
@@ -230,7 +234,7 @@ var Debut = function Debut(element, options) {
   this.$.innerContainer.css({ width: this.options.baseWidth, height: this.options.baseWidth / this.options.aspect });
   this.elements.innerContainer = this.$.innerContainer[0];
 
-  this._presenterView = null;
+  this._presenterViewWindow = null;
 
   this.bounds = {};
 
@@ -306,8 +310,8 @@ Debut.prototype._addEventListeners = function addEventListeners() {
   }).bind(this));
 
   $(window).on('beforeunload', (function () {
-    if (this._presenterView) {
-      this._presenterView.close();
+    if (this._presenterViewWindow) {
+      this._presenterViewWindow.close();
     }
   }).bind(this));
 
@@ -490,20 +494,27 @@ Debut.prototype.proceed = function proceed(direction, ind) {
 /**
  * Open presenter view
  */
-Debut.prototype.openPresenterView = function openPresenterView(url) {
-  if (this._presenterView) {
-    this._presenterView.close();
+Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
+  if (this._presenterViewWindow) {
+    this._presenterViewWindow.close();
   }
 
-  this._presenterView = window.open(url, 'Debut Presenter View', 'height=400,width=400');
+  this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=400,width=400');
+  console.log(this._presenterViewWindow);
 
-  $(this._presenterView).load(function () {});
+  this._presenterViewWindow.onload = (function () {
+    this.presenterView = new _presenter2['default']($(this._presenterViewWindow.document).find('.debut-presenter-view')[0], this._presenterViewWindow);
+    if (callback) {
+      callback();
+    }
+  }).bind(this);
 
-  $(this._presenterView).on('beforeunload', (function () {
-    this._presenterView = null;
+  $(this._presenterViewWindow).on('beforeunload', (function () {
+    this._presenterViewWindow = null;
+    this.presenterView = null;
   }).bind(this));
 
-  return this._presenterView;
+  return this.presenterView;
 };
 
 /**
@@ -557,18 +568,61 @@ Debut.defaultOptions = {
 
 Debut.Animation = _animation2['default'];
 Debut.animations = _animation2['default'].animations;
+Debut.PresenterView = _presenter2['default'];
 
 exports['default'] = Debut;
 module.exports = exports['default'];
 
-},{"./animation":1}],4:[function(require,module,exports){
+},{"./animation":1,"./presenter":4}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+var $ = jQuery;
+
+/**
+ * Class to handle opening and events in the presenter view.
+ * Uses haxe to allow it to run in another window
+ *
+ * @constructor
+ */
+var PresenterView = function PresenterView(element, win, doc) {
+  console.log('I\'m here');
+  if (typeof win === 'undefined') {
+    win = window;
+  }
+
+  if (typeof doc === 'undefined') {
+    doc = win.document;
+  }
+
+  this.elements = {
+    container: element,
+    window: win,
+    document: doc
+  };
+
+  this.$ = {
+    container: $(element),
+    window: $(win),
+    document: $(doc)
+  };
+
+  this.$.document.find('.debut-button-nav').click(function () {});
+};
+
+exports['default'] = PresenterView;
+module.exports = exports['default'];
+
+},{}],5:[function(require,module,exports){
 // The __debut variable is defined in the context of the whole module definition
 // Which allows it to export the debut object
 'use strict';
 
 __debut = require('./debut'); // jshint ignore:line
 
-},{"./debut":3}]},{},[4]);
+},{"./debut":3}]},{},[5]);
 
 return __debut;
 }));
