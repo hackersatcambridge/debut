@@ -1,0 +1,11 @@
+{
+  "preset": "jquery",
+  "esnext": true,
+  "requireSpacesInsideParentheses": null,
+  "disallowSpacesInsideParentheses": true,
+  "validateQuoteMarks": "'",
+  "requirePaddingNewLinesBeforeLineComments": null,
+  "disallowSpacesInAnonymousFunctionExpression": null,
+  "disallowSpacesInFunctionExpression": null,
+  "maximumLineLength": 120
+}
