@@ -200,9 +200,9 @@ exports['default'] = Animation;
 module.exports = exports['default'];
 
 },{"./animations":2}],2:[function(require,module,exports){
-"use strict";
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 var $ = jQuery;
@@ -229,8 +229,8 @@ animations.appear.defaultOptions = {
  */
 animations.slide = function slide(context, callback) {
   this.$element.transit({
-    x: "+=" + -context.direction * this.store.leftShift,
-    y: "+=" + -context.direction * this.store.topShift
+    x: '+=' + -context.direction * this.store.leftShift,
+    y: '+=' + -context.direction * this.store.topShift
   }, this.options.duration, this.options.easing, callback);
 };
 
@@ -249,24 +249,24 @@ animations.slide.prepare = function prepare(context) {
 
   switch (this.options.from) {
     default:
-    case "left":
+    case 'left':
       leftShift = -(this.$element.width() + position.left);
       break;
-    case "right":
+    case 'right':
       leftShift = context.debut.bounds.visibleWidth - position.left;
       break;
-    case "top":
+    case 'top':
       topShift = -(this.$element.height() + position.top);
       break;
-    case "bottom":
+    case 'bottom':
       topShift = context.debut.bounds.visibleHeight - position.top;
       break;
   }
 
   if (context.direction === 1) {
     this.$element.css({
-      x: "+=" + context.direction * leftShift,
-      y: "+=" + context.direction * topShift
+      x: '+=' + context.direction * leftShift,
+      y: '+=' + context.direction * topShift
     });
   }
 
@@ -275,17 +275,65 @@ animations.slide.prepare = function prepare(context) {
 };
 
 animations.slide.beforeState = function beforeState(context) {
-  this.store.x = this.$element.css("x");
-  this.store.y = this.$element.css("y");
+  this.store.x = this.$element.css('x');
+  this.store.y = this.$element.css('y');
 };
 
 animations.slide.defaultOptions = {
   entrance: true,
-  from: "left"
+  from: 'left'
 };
 
-exports["default"] = animations;
-module.exports = exports["default"];
+/**
+ * Allows you to arbitrarily animate css using css transitions
+ *
+ * Uses Transit internally, so look to their documentation
+ *
+ * TODO: Keep track of multiple elements if necessary
+ */
+animations.animatecss = function animatecss(context, callback) {
+  var toGo = context.reversed ? this.store.props : this.options.props;
+
+  this.$element.transit(toGo, this.options.duration, this.options.easing, callback);
+};
+
+animations.animatecss.beforeState = function beforeState(context) {
+  this.store.props = {};
+  for (var key in this.options.props) {
+    this.store.props[key] = this.$element.css(key);
+  }
+};
+
+animations.animatecss.defaultOptions = {
+  easing: 'ease'
+};
+
+/**
+ * Allows you to arbitrarily animate any property
+ *
+ * Uses jQuery's animate API internally
+ *
+ * TODO: Keep track of multiple elements if necessary
+ */
+animations.animate = function animate(context, callback) {
+  var toGo = context.reversed ? this.store.props : this.options.props;
+
+  this.$element.animate(toGo, this.options.duration, this.options.easing, callback);
+};
+
+animations.animate.beforeState = function beforeState(context) {
+  this.store.props = {};
+  for (var key in this.options.props) {
+    this.store.props[key] = this.$element.attr(key);
+  }
+};
+
+animations.animate.defaultOptions = {
+  easing: 'swing'
+};
+
+exports['default'] = animations;
+module.exports = exports['default'];
 
 },{}],3:[function(require,module,exports){
 'use strict';
@@ -502,11 +550,8 @@ Debut.prototype.prev = function prev() {
  * Go forwards or backwards in the presentation state
  *
  * @param {Number} direction - Forwards (1) or backwards (-1)?
- * @param {Number} [ind] - The index to start from (for recursive calls)
  *
  * @private
- *
- * TODO: Simplify this somehow?
  */
 Debut.prototype.proceed = function proceed(direction) {
   if (direction === -1) {
@@ -546,6 +591,7 @@ Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
 
   this._presenterViewWindow.onload = (function () {
     this.presenterView = new _presenter2['default']($(this._presenterViewWindow.document).find('.debut-presenter-view')[0], this, this._presenterViewWindow);
+
     if (callback) {
       callback();
     }
