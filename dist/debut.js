@@ -31,6 +31,7 @@ var $ = jQuery;
  * It is responsible for running an animation, and eventually getting a callback back to the Debut instance
  *
  * @constructor Animation
+ * @memberof Debut
  */
 var Animation = function Animation(definition, options) {
   this.options = $.extend({}, Animation.defaultOptions, definition.defaultOptions || {}, options);
@@ -89,6 +90,11 @@ Animation.prototype.isHidden = function isHidden() {
   return this.isOnDOM && this.options.entrance;
 };
 
+/**
+ * Default options for *all* animations.
+ *
+ * @memberof Animation
+ */
 Animation.defaultOptions = {
   easing: 'easeInOutCubic',
   duration: 500,
@@ -98,6 +104,94 @@ Animation.defaultOptions = {
   entrance: false,
   reverse: false,
   direction: 1
+};
+
+/**
+ * Runs through an array of animations. Forwards or backwards, takes into account delays
+ * and all of that nonsense.
+ *
+ * @function
+ * @memberof Animation
+ * @private
+ */
+Animation._runArray = function _runArray(array, context, ind) {
+  var direction = context.direction;
+
+  if (typeof ind === 'undefined') {
+    ind = direction === 1 ? 0 : array.length;
+  }
+
+  if (direction === -1) {
+    ind -= 1;
+  }
+
+  var animation = array[ind];
+  var otherAnimation = null;
+  var animationMode = null;
+
+  if (direction === 1) {
+    ind += 1;
+
+    // Remember: ind has already been increased
+    if (ind < array.length) {
+      otherAnimation = array[ind];
+      animationMode = otherAnimation.start;
+    }
+  } else {
+    // Remember: ind has already been decreased
+    if (ind >= 0) {
+      otherAnimation = array[ind - 1];
+      animationMode = animation.start;
+    }
+  }
+
+  var callback;
+
+  if (animationMode == 'after') {
+    callback = Animation._runArray.bind(this, array, context, ind);
+    var refAnimation = direction === 1 ? otherAnimation : animation;
+    if (refAnimation.delay > 0) {
+      var oldCallback = callback;
+      callback = function () {
+        setTimeout(oldCallback, refAnimation.delay);
+      };
+    }
+  }
+  console.log('runarray', ind);
+  var contextToSend = {
+    debut: context.debut,
+    direction: animation.direction * direction,
+    reversed: direction === -1
+  };
+
+  var next = (function () {
+    animation.run(contextToSend, callback);
+
+    if (animationMode == 'with') {
+      if (direction === 1) {
+        if (otherAnimation.delay > 0) {
+          setTimeout(Animation._runArray.bind(this, array, context, ind), otherAnimation.delay);
+        } else {
+          Animation._runArray(array, context, ind);
+        }
+      } else {
+        if (animation.delay > 0) {
+          // If this animation was delayed when going forwards,
+          // Going backwards, the previous animation needs to be delayed
+          var delay = Math.max(animation.delay + animation.duration - otherAnimation.duration, 0);
+          setTimeout(Animation._runArray.bind(this, array, context, ind), delay);
+        } else {
+          Animation._runArray(array, context, ind);
+        }
+      }
+    }
+  }).bind(this);
+
+  if (animation.delay > 0 && direction === 1 && animation.step === 'start') {
+    setTimeout(next, animation.delay);
+  } else {
+    next();
+  }
 };
 
 Animation.animations = _animations2['default'];
@@ -212,6 +306,8 @@ var _presenter2 = _interopRequireDefault(_presenter);
 
 // Reminder: All external dependencies are globals
 var $ = jQuery;
+
+/** @module Debut */
 
 /**
  * The primary Debut object is responsible for handling the presentation.
@@ -344,6 +440,22 @@ Debut.prototype.step = function step(element, animation, options) {
   animation = Debut.animations[animation];
   animation = new _animation2['default'](animation, $.extend({}, { element: element }, options));
 
+  // Group animations that are to be played together
+  if (animation.start !== 'step') {
+    if (this.animationQueue.length === 0) {
+      throw new Error('First animation start type must be step');
+    }
+
+    var oldAnimation = this.animationQueue.pop();
+
+    if (oldAnimation instanceof Array) {
+      oldAnimation.push(animation);
+      animation = oldAnimation;
+    } else {
+      animation = [oldAnimation, animation];
+    }
+  }
+
   this.animationQueue.push(animation);
 
   return this;
@@ -395,99 +507,28 @@ Debut.prototype.prev = function prev() {
  *
  * TODO: Simplify this somehow?
  */
-Debut.prototype.proceed = function proceed(direction, ind) {
-  var modifyIndex = false;
-
-  if (typeof ind === 'undefined') {
-    ind = this.animationIndex;
-    modifyIndex = true;
-  }
-
+Debut.prototype.proceed = function proceed(direction) {
   if (direction === -1) {
-    ind -= 1;
+    this.animationIndex -= 1;
   }
 
-  var animation = this.animationQueue[ind];
-  var otherAnimation = null;
-  var animationMode = null;
+  var animation = this.animationQueue[this.animationIndex];
 
   if (direction === 1) {
-    ind += 1;
-
-    // Remember: ind has already been increased
-    if (ind < this.animationQueue.length) {
-      otherAnimation = this.animationQueue[ind];
-      animationMode = otherAnimation.start;
-    }
-  } else {
-    // Remember: ind has already been decreased
-    if (ind >= 0) {
-      otherAnimation = this.animationQueue[ind - 1];
-      animationMode = animation.start;
-    }
-  }
-
-  var callback;
-
-  if (animationMode == 'after') {
-    callback = this.proceed.bind(this, direction, ind);
-    var refAnimation = direction === 1 ? otherAnimation : animation;
-    if (refAnimation.delay > 0) {
-      var oldCallback = callback;
-      callback = function () {
-        setTimeout(oldCallback, refAnimation.delay);
-      };
-    }
+    this.animationIndex += 1;
   }
 
   var context = {
-    debut: this,
-    direction: animation.direction * direction,
-    reversed: direction === -1
+    direction: direction,
+    reversed: direction === -1,
+    debut: this
   };
 
-  var next = (function () {
-    animation.run(context, callback);
-
-    if (animationMode == 'with') {
-      if (direction === 1) {
-        if (otherAnimation.delay > 0) {
-          setTimeout(this.proceed.bind(this, direction, ind), otherAnimation.delay);
-        } else {
-          this.proceed(direction, ind);
-        }
-      } else {
-        if (animation.delay > 0) {
-          // If this animation was delayed when going forwards,
-          // Going backwards, the previous animation needs to be delayed
-          var delay = Math.max(animation.delay + animation.duration - otherAnimation.duration, 0);
-          setTimeout(this.proceed.bind(this, direction, ind), delay);
-        } else {
-          this.proceed(direction, ind);
-        }
-      }
-    }
-  }).bind(this);
-
-  if (animation.delay > 0 && direction === 1 && animation.step === 'start') {
-    setTimeout(next, animation.delay);
+  if (animation instanceof Array) {
+    _animation2['default']._runArray(animation, context);
   } else {
-    next();
-  }
-
-  // Pre-emptively figure out what the next animation index will be
-  if (modifyIndex) {
-    var anim = animation;
-    var i = ind;
-
-    // Rewind one step
-    i -= direction;
-
-    while ((anim = this.getAnimation(i += direction)) && anim.start !== 'step') {}
-
-    ind = Math.max(0, Math.min(i, this.animationQueue.length));
-
-    this.animationIndex = ind;
+    context.direction *= animation.direction;
+    animation.run(context);
   }
 };
 
