@@ -385,6 +385,8 @@ var Debut = function Debut(element, options) {
   this.animationQueue = [];
   this.animationIndex = 0;
 
+  this.milestones = [];
+
   if (this.options.full) {
     this.$.container.addClass('debut-full');
   }
@@ -394,6 +396,7 @@ var Debut = function Debut(element, options) {
   }
 
   this._addEventListeners();
+  this.milestone('Start');
 };
 
 /**
@@ -579,6 +582,38 @@ Debut.prototype.proceed = function proceed(direction) {
 };
 
 /**
+ * Add a milestone
+ *
+ * @param {String} name - The name of the milestone
+ * @param {Object} [metadata] - Any metadata to associate with the milestone
+ */
+Debut.prototype.milestone = function milestone(name, metadata) {
+  var ind = this.animationQueue.length;
+  var lastMilestone = null;
+
+  if (this.milestones.length > 0) {
+    lastMilestone = this.milestones[this.milestones.length - 1];
+  }
+
+  // Replace an existing milestone if it is on the same index
+  if (lastMilestone !== null) {
+    if (lastMilestone.index === ind) {
+      this.milestones.pop();
+    }
+  }
+
+  var milestone = {
+    name: name,
+    index: ind,
+    metadata: metadata
+  };
+
+  this.milestones.push(milestone);
+
+  return this;
+};
+
+/**
  * Open presenter view
  */
 Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
@@ -654,6 +689,7 @@ Debut.defaultOptions = {
   presenterUrl: 'presenter.html'
 };
 
+// Export everything
 Debut.Animation = _animation2['default'];
 Debut.animations = _animation2['default'].animations;
 Debut.PresenterView = _presenter2['default'];
@@ -676,7 +712,8 @@ var $ = jQuery;
  * @constructor
  */
 var PresenterView = function PresenterView(element, debut, win, doc) {
-  console.log('I\'m here');
+  this.debut = debut;
+
   if (typeof win === 'undefined') {
     win = window;
   }
@@ -694,17 +731,40 @@ var PresenterView = function PresenterView(element, debut, win, doc) {
   this.$ = {
     container: $(element),
     window: $(win),
-    document: $(doc)
-  };
+    document: $(doc) };
 
-  this.$.document.find('.debut-button-next').click(debut.next.bind(debut));
-  this.$.document.find('.debut-button-prev').click(debut.prev.bind(debut));
+  this.$.milestones = this.$.container.find('.debut-milestones');
+  this.elements.milestones = this.$.milestones[0];
+
+  this._addMilestones();
+
+  this.$.container.find('.debut-button-next').click(debut.next.bind(debut));
+  this.$.container.find('.debut-button-prev').click(debut.prev.bind(debut));
 
   this.resetTimer();
   this.startTimer();
 
-  this.$.document.find('.debut-button-reset-timer').click(this.resetTimer.bind(this));
-  this.$.document.find('.debut-button-pause-timer').click(this.toggleTimer.bind(this));
+  this.$.container.find('.debut-button-reset-timer').click(this.resetTimer.bind(this));
+  this.$.container.find('.debut-button-pause-timer').click(this.toggleTimer.bind(this));
+};
+
+/**
+ * Adds milestones to the navigation
+ *
+ * @private
+ */
+PresenterView.prototype._addMilestones = function addMilestones() {
+  console.log('Add milestones', this.debut.milestones);
+  this.debut.milestones.forEach((function (milestone) {
+    console.log(milestone);
+    var element = $('<button class="debut-button debut-milestone">' + milestone.name + '</div>');
+
+    element.click((function () {
+      this.debut.goTo(milestone.index);
+    }).bind(this));
+
+    this.$.milestones.append(element);
+  }).bind(this));
 };
 
 /**

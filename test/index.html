@@ -21,6 +21,7 @@
         .step('.to-appear-2', 'slide', { from: 'bottom' })
           .and('.to-appear-with-2', 'slide', { from: 'top', duration: 1000 })
           .then('.to-appear', 'slide', { from: 'bottom', reverse: true, delay: 500 })
+          .milestone('Almost everything')
         .step('.to-appear-with-2', 'animatecss', { props: { color: 'red', rotate: '-10deg' } });
     </script>
   </body>
