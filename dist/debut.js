@@ -128,6 +128,7 @@ Animation._runArray = function _runArray(array, context, ind) {
   var animation = array[ind];
   var otherAnimation = null;
   var animationMode = null;
+  var final = false;
 
   if (direction === 1) {
     ind += 1;
@@ -136,16 +137,20 @@ Animation._runArray = function _runArray(array, context, ind) {
     if (ind < array.length) {
       otherAnimation = array[ind];
       animationMode = otherAnimation.start;
+    } else {
+      final = true;
     }
   } else {
     // Remember: ind has already been decreased
-    if (ind >= 0) {
+    if (ind > 0) {
       otherAnimation = array[ind - 1];
       animationMode = animation.start;
+    } else {
+      final = true;
     }
   }
 
-  var callback;
+  var callback = final ? context.callback : undefined;
 
   if (animationMode == 'after') {
     callback = Animation._runArray.bind(this, array, context, ind);
@@ -157,7 +162,7 @@ Animation._runArray = function _runArray(array, context, ind) {
       };
     }
   }
-  console.log('runarray', ind);
+
   var contextToSend = {
     debut: context.debut,
     direction: animation.direction * direction,
@@ -231,7 +236,7 @@ animations.slide = function slide(context, callback) {
   this.$element.transit({
     x: '+=' + -context.direction * this.store.leftShift,
     y: '+=' + -context.direction * this.store.topShift
-  }, this.options.duration, this.options.easing, callback);
+  }, this.duration, this.options.easing, callback);
 };
 
 animations.slide.prepare = function prepare(context) {
@@ -294,7 +299,7 @@ animations.slide.defaultOptions = {
 animations.animatecss = function animatecss(context, callback) {
   var toGo = context.reversed ? this.store.props : this.options.props;
 
-  this.$element.transit(toGo, this.options.duration, this.options.easing, callback);
+  this.$element.transit(toGo, this.duration, this.options.easing, callback);
 };
 
 animations.animatecss.beforeState = function beforeState(context) {
@@ -318,7 +323,7 @@ animations.animatecss.defaultOptions = {
 animations.animate = function animate(context, callback) {
   var toGo = context.reversed ? this.store.props : this.options.props;
 
-  this.$element.animate(toGo, this.options.duration, this.options.easing, callback);
+  this.$element.animate(toGo, this.duration, this.options.easing, callback);
 };
 
 animations.animate.beforeState = function beforeState(context) {
@@ -556,7 +561,8 @@ Debut.prototype.prev = function prev() {
  *
  * @private
  */
-Debut.prototype.proceed = function proceed(direction) {
+Debut.prototype.proceed = function proceed(direction, callback) {
+  console.log(this.animationIndex);
   if (direction === -1) {
     this.animationIndex -= 1;
   }
@@ -574,11 +580,40 @@ Debut.prototype.proceed = function proceed(direction) {
   };
 
   if (animation instanceof Array) {
+    context.callback = callback;
     _animation2['default']._runArray(animation, context);
   } else {
     context.direction *= animation.direction;
-    animation.run(context);
+    animation.run(context, callback);
   }
+};
+
+/**
+ * Go to a state in the presentation
+ *
+ * @param {Number} index - Index of the animation queue
+ */
+Debut.prototype.goTo = function goTo(index, callback) {
+  index = Math.max(0, Math.min(this.animationQueue.length, index));
+
+  var difference = index - this.animationIndex;
+  if (difference === 0) {
+    return;
+  }
+
+  var direction = difference > 0 ? 1 : -1;
+  console.log(direction, difference);
+
+  var proceed = (function () {
+    var cb = callback;
+    if (direction === 1 && this.animationIndex < index - 1 || direction === -1 && this.animationIndex > index + 1) {
+      cb = proceed;
+    }
+
+    this.proceed(direction, cb);
+  }).bind(this);
+
+  proceed();
 };
 
 /**
@@ -587,7 +622,7 @@ Debut.prototype.proceed = function proceed(direction) {
  * @param {String} name - The name of the milestone
  * @param {Object} [metadata] - Any metadata to associate with the milestone
  */
-Debut.prototype.milestone = function milestone(name, metadata) {
+Debut.prototype.milestone = function addMilestone(name, metadata) {
   var ind = this.animationQueue.length;
   var lastMilestone = null;
 
