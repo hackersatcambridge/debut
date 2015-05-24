@@ -360,6 +360,10 @@ var _presenter = require('./presenter');
 
 var _presenter2 = _interopRequireDefault(_presenter);
 
+var _screenfull = require('screenfull');
+
+var _screenfull2 = _interopRequireDefault(_screenfull);
+
 // Reminder: All external dependencies are globals
 var $ = jQuery;
 
@@ -485,6 +489,7 @@ Debut.prototype._addEventListeners = function addEventListeners() {
       checkKeys('next', e, this.next);
       checkKeys('prev', e, this.prev);
       checkKeys('presenter', e, this.openPresenterView.bind(this, this.options.presenterUrl));
+      checkKeys('fullscreen', e, this.toggleFullscreen);
     }).bind(this));
   }
 };
@@ -653,6 +658,15 @@ Debut.prototype.milestone = function addMilestone(name, metadata) {
 };
 
 /**
+ * Toggles fullscreen status
+ */
+Debut.prototype.toggleFullscreen = function toglleFullscreen() {
+  if (_screenfull2['default'].enabled) {
+    _screenfull2['default'].toggle(this.elements.container);
+  }
+};
+
+/**
  * Open presenter view
  */
 Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
@@ -660,7 +674,7 @@ Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
     this._presenterViewWindow.close();
   }
 
-  this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=800,width=1000');
+  this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=800,width=1000,modal=yes');
   console.log(this._presenterViewWindow);
 
   this._presenterViewWindow.onload = (function () {
@@ -723,7 +737,8 @@ Debut.defaultOptions = {
   keys: {
     next: [39 /* Right Arrow */, 34 /* Page Down */],
     prev: [37 /* Left Arrow */, 33 /* Page Up */],
-    presenter: [80]
+    presenter: [80 /* P key */],
+    fullscreen: [70 /* F key */]
   },
   presenterUrl: 'presenter.html'
 };
@@ -736,7 +751,7 @@ Debut.PresenterView = _presenter2['default'];
 exports['default'] = Debut;
 module.exports = exports['default'];
 
-},{"./animation":1,"./presenter":4}],4:[function(require,module,exports){
+},{"./animation":1,"./presenter":4,"screenfull":5}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -891,13 +906,160 @@ exports['default'] = PresenterView;
 module.exports = exports['default'];
 
 },{}],5:[function(require,module,exports){
+/*!
+* screenfull
+* v2.0.0 - 2014-12-22
+* (c) Sindre Sorhus; MIT License
+*/
+(function () {
+	'use strict';
+
+	var isCommonjs = typeof module !== 'undefined' && module.exports;
+	var keyboardAllowed = typeof Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in Element;
+
+	var fn = (function () {
+		var val;
+		var valLength;
+
+		var fnMap = [
+			[
+				'requestFullscreen',
+				'exitFullscreen',
+				'fullscreenElement',
+				'fullscreenEnabled',
+				'fullscreenchange',
+				'fullscreenerror'
+			],
+			// new WebKit
+			[
+				'webkitRequestFullscreen',
+				'webkitExitFullscreen',
+				'webkitFullscreenElement',
+				'webkitFullscreenEnabled',
+				'webkitfullscreenchange',
+				'webkitfullscreenerror'
+
+			],
+			// old WebKit (Safari 5.1)
+			[
+				'webkitRequestFullScreen',
+				'webkitCancelFullScreen',
+				'webkitCurrentFullScreenElement',
+				'webkitCancelFullScreen',
+				'webkitfullscreenchange',
+				'webkitfullscreenerror'
+
+			],
+			[
+				'mozRequestFullScreen',
+				'mozCancelFullScreen',
+				'mozFullScreenElement',
+				'mozFullScreenEnabled',
+				'mozfullscreenchange',
+				'mozfullscreenerror'
+			],
+			[
+				'msRequestFullscreen',
+				'msExitFullscreen',
+				'msFullscreenElement',
+				'msFullscreenEnabled',
+				'MSFullscreenChange',
+				'MSFullscreenError'
+			]
+		];
+
+		var i = 0;
+		var l = fnMap.length;
+		var ret = {};
+
+		for (; i < l; i++) {
+			val = fnMap[i];
+			if (val && val[1] in document) {
+				for (i = 0, valLength = val.length; i < valLength; i++) {
+					ret[fnMap[0][i]] = val[i];
+				}
+				return ret;
+			}
+		}
+
+		return false;
+	})();
+
+	var screenfull = {
+		request: function (elem) {
+			var request = fn.requestFullscreen;
+
+			elem = elem || document.documentElement;
+
+			// Work around Safari 5.1 bug: reports support for
+			// keyboard in fullscreen even though it doesn't.
+			// Browser sniffing, since the alternative with
+			// setTimeout is even worse.
+			if (/5\.1[\.\d]* Safari/.test(navigator.userAgent)) {
+				elem[request]();
+			} else {
+				elem[request](keyboardAllowed && Element.ALLOW_KEYBOARD_INPUT);
+			}
+		},
+		exit: function () {
+			document[fn.exitFullscreen]();
+		},
+		toggle: function (elem) {
+			if (this.isFullscreen) {
+				this.exit();
+			} else {
+				this.request(elem);
+			}
+		},
+		raw: fn
+	};
+
+	if (!fn) {
+		if (isCommonjs) {
+			module.exports = false;
+		} else {
+			window.screenfull = false;
+		}
+
+		return;
+	}
+
+	Object.defineProperties(screenfull, {
+		isFullscreen: {
+			get: function () {
+				return !!document[fn.fullscreenElement];
+			}
+		},
+		element: {
+			enumerable: true,
+			get: function () {
+				return document[fn.fullscreenElement];
+			}
+		},
+		enabled: {
+			enumerable: true,
+			get: function () {
+				// Coerce to boolean in case of old WebKit
+				return !!document[fn.fullscreenEnabled];
+			}
+		}
+	});
+
+	if (isCommonjs) {
+		module.exports = screenfull;
+	} else {
+		window.screenfull = screenfull;
+	}
+})();
+
+},{}],6:[function(require,module,exports){
 // The __debut variable is defined in the context of the whole module definition
 // Which allows it to export the debut object
 'use strict';
 
 __debut = require('./debut'); // jshint ignore:line
 
-},{"./debut":3}]},{},[5]);
+},{"./debut":3}]},{},[6]);
 
 return __debut;
 }));

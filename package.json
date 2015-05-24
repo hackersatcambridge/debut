@@ -46,6 +46,7 @@
     "jsdoc": "^3.3.0",
     "normalize.css": "^3.0.3",
     "run-sequence": "^1.1.0",
+    "screenfull": "^2.0.0",
     "serve-static": "^1.9.2",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
