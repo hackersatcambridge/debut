@@ -62,6 +62,8 @@ Animation.prototype.run = function run(context, callback) {
     this.firstRun = false;
   }
 
+  context.duration = context.fast ? 0 : this.duration;
+
   if (this.definition.prepare) {
     this.definition.prepare.call(this, context);
   }
@@ -155,7 +157,7 @@ Animation._runArray = function _runArray(array, context, ind) {
   if (animationMode == 'after') {
     callback = Animation._runArray.bind(this, array, context, ind);
     var refAnimation = direction === 1 ? otherAnimation : animation;
-    if (refAnimation.delay > 0) {
+    if (refAnimation.delay > 0 && !context.fast) {
       var oldCallback = callback;
       callback = function () {
         setTimeout(oldCallback, refAnimation.delay);
@@ -166,7 +168,8 @@ Animation._runArray = function _runArray(array, context, ind) {
   var contextToSend = {
     debut: context.debut,
     direction: animation.direction * direction,
-    reversed: direction === -1
+    reversed: direction === -1,
+    fast: context.fast
   };
 
   var next = (function () {
@@ -174,13 +177,13 @@ Animation._runArray = function _runArray(array, context, ind) {
 
     if (animationMode == 'with') {
       if (direction === 1) {
-        if (otherAnimation.delay > 0) {
+        if (otherAnimation.delay > 0 && !context.fast) {
           setTimeout(Animation._runArray.bind(this, array, context, ind), otherAnimation.delay);
         } else {
           Animation._runArray(array, context, ind);
         }
       } else {
-        if (animation.delay > 0) {
+        if (animation.delay > 0 && !context.fast) {
           // If this animation was delayed when going forwards,
           // Going backwards, the previous animation needs to be delayed
           var delay = Math.max(animation.delay + animation.duration - otherAnimation.duration, 0);
@@ -192,7 +195,7 @@ Animation._runArray = function _runArray(array, context, ind) {
     }
   }).bind(this);
 
-  if (animation.delay > 0 && direction === 1 && animation.step === 'start') {
+  if (animation.delay > 0 && !context.fast && direction === 1 && animation.step === 'start') {
     setTimeout(next, animation.delay);
   } else {
     next();
@@ -219,7 +222,7 @@ var animations = {};
  * The logic is empty because animations naturally handle hiding and showing entrance animations.
  */
 animations.appear = function (context, callback) {
-  setTimeout(callback.bind(this), this.duration);
+  setTimeout(callback.bind(this), context.duration);
 };
 
 animations.appear.beforeState = function beforeState(context) {};
@@ -236,7 +239,7 @@ animations.slide = function slide(context, callback) {
   this.$element.transit({
     x: '+=' + -context.direction * this.store.leftShift,
     y: '+=' + -context.direction * this.store.topShift
-  }, this.duration, this.options.easing, callback);
+  }, context.duration, this.options.easing, callback);
 };
 
 animations.slide.prepare = function prepare(context) {
@@ -299,7 +302,7 @@ animations.slide.defaultOptions = {
 animations.animatecss = function animatecss(context, callback) {
   var toGo = context.reversed ? this.store.props : this.options.props;
 
-  this.$element.transit(toGo, this.duration, this.options.easing, callback);
+  this.$element.transit(toGo, context.duration, this.options.easing, callback);
 };
 
 animations.animatecss.beforeState = function beforeState(context) {
@@ -323,7 +326,7 @@ animations.animatecss.defaultOptions = {
 animations.animate = function animate(context, callback) {
   var toGo = context.reversed ? this.store.props : this.options.props;
 
-  this.$element.animate(toGo, this.duration, this.options.easing, callback);
+  this.$element.animate(toGo, context.duration, this.options.easing, callback);
 };
 
 animations.animate.beforeState = function beforeState(context) {
@@ -561,7 +564,7 @@ Debut.prototype.prev = function prev() {
  *
  * @private
  */
-Debut.prototype.proceed = function proceed(direction, callback) {
+Debut.prototype.proceed = function proceed(direction, callback, fast) {
   console.log(this.animationIndex);
   if (direction === -1) {
     this.animationIndex -= 1;
@@ -576,7 +579,8 @@ Debut.prototype.proceed = function proceed(direction, callback) {
   var context = {
     direction: direction,
     reversed: direction === -1,
-    debut: this
+    debut: this,
+    fast: !!fast
   };
 
   if (animation instanceof Array) {
@@ -610,7 +614,7 @@ Debut.prototype.goTo = function goTo(index, callback) {
       cb = proceed;
     }
 
-    this.proceed(direction, cb);
+    this.proceed(direction, cb, true);
   }).bind(this);
 
   proceed();
