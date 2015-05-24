@@ -353,31 +353,32 @@ var Debut = function Debut(element, options) {
  * Called automatically on window resize. In other cases, you will need to call it yourself
  */
 Debut.prototype.resize = function resize(event) {
-  this.bounds.width = this.$.innerContainer.width();
-  this.bounds.height = this.$.innerContainer.height();
-  this.bounds.outerWidth = this.$.container.width();
-  this.bounds.outerHeight = this.$.container.height();
-  this.bounds.aspect = this.bounds.outerWidth / this.bounds.outerHeight;
+  var bounds = this.bounds;
+  bounds.width = this.$.innerContainer.width();
+  bounds.height = this.$.innerContainer.height();
+  bounds.outerWidth = this.$.container.width();
+  bounds.outerHeight = this.$.container.height();
+  bounds.aspect = bounds.outerWidth / bounds.outerHeight;
 
   if (this.options.letterbox) {
-    this.bounds.visibleWidth = this.bounds.width;
-    this.bounds.visibleHeight = this.bounds.height;
+    bounds.visibleWidth = bounds.width;
+    bounds.visibleHeight = bounds.height;
   } else {
-    this.bounds.visibleWidth = this.bounds.outerWidth;
-    this.bounds.visibleHeight = this.bounds.outerHeight;
+    bounds.visibleWidth = bounds.outerWidth;
+    bounds.visibleHeight = bounds.outerHeight;
   }
 
-  if (this.bounds.aspect > this.options.aspect) {
-    this.bounds.scale = this.bounds.outerHeight / (this.options.baseWidth / this.options.aspect);
-    this.bounds.top = 0;
-    this.bounds.left = (this.bounds.outerWidth - this.options.baseWidth * this.bounds.scale) / 2;
+  if (bounds.aspect > this.options.aspect) {
+    bounds.scale = bounds.outerHeight / (this.options.baseWidth / this.options.aspect);
+    bounds.top = 0;
+    bounds.left = (bounds.outerWidth - this.options.baseWidth * bounds.scale) / 2;
   } else {
-    this.bounds.scale = this.bounds.outerWidth / this.options.baseWidth;
-    this.bounds.top = (this.bounds.outerHeight - this.options.baseWidth / this.options.aspect * this.bounds.scale) / 2;
-    this.bounds.left = 0;
+    bounds.scale = bounds.outerWidth / this.options.baseWidth;
+    bounds.top = (bounds.outerHeight - this.options.baseWidth / this.options.aspect * bounds.scale) / 2;
+    bounds.left = 0;
   }
 
-  this.$.innerContainer.css({ scale: this.bounds.scale, top: this.bounds.top, left: this.bounds.left });
+  this.$.innerContainer.css({ scale: bounds.scale, top: bounds.top, left: bounds.left });
 };
 
 /**
@@ -544,7 +545,7 @@ Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
   console.log(this._presenterViewWindow);
 
   this._presenterViewWindow.onload = (function () {
-    this.presenterView = new _presenter2['default']($(this._presenterViewWindow.document).find('.debut-presenter-view')[0], this._presenterViewWindow);
+    this.presenterView = new _presenter2['default']($(this._presenterViewWindow.document).find('.debut-presenter-view')[0], this, this._presenterViewWindow);
     if (callback) {
       callback();
     }
@@ -628,7 +629,7 @@ var $ = jQuery;
  *
  * @constructor
  */
-var PresenterView = function PresenterView(element, win, doc) {
+var PresenterView = function PresenterView(element, debut, win, doc) {
   console.log('I\'m here');
   if (typeof win === 'undefined') {
     win = window;
@@ -650,7 +651,95 @@ var PresenterView = function PresenterView(element, win, doc) {
     document: $(doc)
   };
 
-  this.$.document.find('.debut-button-nav').click(function () {});
+  this.$.document.find('.debut-button-next').click(debut.next.bind(debut));
+  this.$.document.find('.debut-button-prev').click(debut.prev.bind(debut));
+
+  this.resetTimer();
+  this.startTimer();
+
+  this.$.document.find('.debut-button-reset-timer').click(this.resetTimer.bind(this));
+  this.$.document.find('.debut-button-pause-timer').click(this.toggleTimer.bind(this));
+};
+
+/**
+ * Starts the timer in the presenter view
+ */
+PresenterView.prototype.startTimer = function startTimer() {
+  console.log('Start');
+  if (!this.isPlaying()) {
+    var now = Date.now();
+    this.startTime += now - this.lastTime;
+    this.lastTime = now;
+
+    this.interval = setInterval(this._renderTimer.bind(this), 500);
+    this._renderTimer();
+
+    this.$.document.find('.debut-button-pause-timer').text('Pause Timer');
+  }
+};
+
+/**
+ * Pausess the timer in the presenter view
+ */
+PresenterView.prototype.pauseTimer = function stopTimer() {
+  console.log('Pause');
+  if (this.isPlaying()) {
+    clearInterval(this.interval);
+    this.interval = null;
+
+    this.$.document.find('.debut-button-pause-timer').text('Start Timer');
+  }
+};
+
+/**
+ * Resets the timer in presenter view
+ */
+PresenterView.prototype.resetTimer = function resetTimer() {
+  this.startTime = Date.now();
+  this.lastTime = Date.now();
+  this._renderTimer();
+
+  if (this.isPlaying()) {
+    this.pauseTimer();
+    this.startTimer();
+  }
+};
+
+/**
+ * Toggles the timer state
+ */
+PresenterView.prototype.toggleTimer = function toggleTimer() {
+  if (this.isPlaying()) {
+    this.pauseTimer();
+  } else {
+    this.startTimer();
+  }
+};
+
+/**
+ * Is the timer playing?
+ *
+ * @returns {Bool} If the timer is playing
+ */
+PresenterView.prototype.isPlaying = function isPlaying() {
+  return this.interval != null;
+};
+
+/**
+ * Internal function used to render the timer
+ *
+ * @private
+ */
+PresenterView.prototype._renderTimer = function _renderTimer() {
+  var now = Date.now();
+  var difference = now - this.startTime;
+  this.lastTime = now;
+
+  var minutes = Math.floor(difference / 60000);
+  var seconds = Math.floor(difference / 1000 - minutes * 60);
+
+  this.$.document.find('.debut-timer-number.debut-minutes').text(minutes);
+  this.$.document.find('.debut-timer-number.debut-seconds').text(seconds);
 };
 
 exports['default'] = PresenterView;

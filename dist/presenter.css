@@ -481,3 +481,16 @@ th {
 .debut-button-side:hover {
   background: #ddd;
 }
+.debut-timer {
+  text-align: center;
+}
+.debut-timer-number {
+  font-size: 5em;
+  font-weight: lighter;
+}
+.debut-timer-label {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+}
