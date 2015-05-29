@@ -8,6 +8,8 @@
       <div class="to-appear-with">Hello!</div>
       <div class="to-appear-2">Hello</div>
       <div class="to-appear-with-2">Hellos</div>
+      <div class="block" style="width: 600px; height: 50px; background: red"></div>
+      <div class="block" style="width: 200px; height: 50px; background: green"></div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.transit/0.9.12/jquery.transit.min.js"></script>
@@ -22,7 +24,8 @@
           .and('.to-appear-with-2', 'slide', { from: 'top', duration: 1000 })
           .then('.to-appear', 'slide', { from: 'bottom', reverse: true, delay: 500 })
           .milestone('Almost everything')
-        .step('.to-appear-with-2', 'animatecss', { props: { color: 'red', rotate: '-10deg' } });
+        .step('.to-appear-with-2', 'animatecss', { props: { color: 'red', rotate: '-10deg' } })
+        .step('.block', 'slide');
     </script>
   </body>
 </html>

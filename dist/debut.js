@@ -47,22 +47,68 @@ var Animation = function Animation(definition, options) {
   this.isJQuery = this.element instanceof $;
   this.isOnDOM = this.element instanceof HTMLElement || this.isJQuery; // Not always true but we will continue
   this.firstRun = true;
-  this.store = {};
+
+  this.stores = [];
+  this.contexts = [];
+  this.elements = [];
+  this.$elements = [];
 
   if (this.isHidden() && this.direction === 1) {
     this.$element.css('visibility', 'hidden');
   }
+
+  var self = this;
+
+  if (this.options.separateElements) {
+    this.$element.each(function () {
+      self.stores.push({});
+      self.contexts.push({});
+      self.elements.push(this);
+      self.$elements.push($(this));
+    });
+  } else {
+    self.stores.push({});
+    self.contexts.push({});
+    self.elements.push(this.element);
+    self.$elements.push(this.$element);
+  }
 };
 
-Animation.prototype.run = function run(context, callback) {
+Animation.prototype._run = function run(context, callback) {
   callback = callback || function () {};
+  context.duration = context.fast ? 0 : this.duration;
+  context.options = this.options;
 
+  var finished = [];
+
+  this.$elements.forEach((function (element, ind) {
+    var newContext = this.contexts[ind];
+    var newCallback = function newCallback() {
+      finished[ind] = 0;
+      if (finished.indexOf(1) === -1) {
+        callback();
+      }
+    };
+    finished[ind] = 1;
+
+    for (var i in context) {
+      newContext[i] = context[i];
+    }
+
+    newContext.element = this.elements[ind];
+    newContext.$element = this.$elements[ind];
+    newContext.store = this.stores[ind];
+
+    this._runWithContext(newContext, newCallback);
+  }).bind(this));
+
+  this.firstRun = false;
+};
+
+Animation.prototype._runWithContext = function run(context, callback) {
   if (this.firstRun && !context.reversed && this.definition.beforeState) {
     this.definition.beforeState.call(this, context);
-    this.firstRun = false;
   }
-
-  context.duration = context.fast ? 0 : this.duration;
 
   if (this.definition.prepare) {
     this.definition.prepare.call(this, context);
@@ -70,11 +116,11 @@ Animation.prototype.run = function run(context, callback) {
 
   if (this.isHidden()) {
     if (context.direction === 1) {
-      this.$element.css('visibility', '');
+      context.$element.css('visibility', '');
     } else {
       var oldCallback = callback;
       callback = (function callback() {
-        this.$element.css('visibility', 'hidden');
+        context.$element.css('visibility', 'hidden');
         oldCallback();
       }).bind(this);
     }
@@ -105,7 +151,8 @@ Animation.defaultOptions = {
   element: null,
   entrance: false,
   reverse: false,
-  direction: 1
+  direction: 1,
+  separateElements: true
 };
 
 /**
@@ -173,7 +220,7 @@ Animation._runArray = function _runArray(array, context, ind) {
   };
 
   var next = (function () {
-    animation.run(contextToSend, callback);
+    animation._run(contextToSend, callback);
 
     if (animationMode == 'with') {
       if (direction === 1) {
@@ -236,10 +283,10 @@ animations.appear.defaultOptions = {
  * Slides the element in from a side of the screen
  */
 animations.slide = function slide(context, callback) {
-  this.$element.transit({
-    x: '+=' + -context.direction * this.store.leftShift,
-    y: '+=' + -context.direction * this.store.topShift
-  }, context.duration, this.options.easing, callback);
+  context.$element.transit({
+    x: '+=' + -context.direction * context.store.leftShift,
+    y: '+=' + -context.direction * context.store.topShift
+  }, context.duration, context.options.easing, callback);
 };
 
 animations.slide.prepare = function prepare(context) {
@@ -247,24 +294,24 @@ animations.slide.prepare = function prepare(context) {
   var topShift = 0;
 
   if (context.direction === 1) {
-    this.$element.css({
-      x: this.store.x,
-      y: this.store.y
+    context.$element.css({
+      x: context.store.x,
+      y: context.store.y
     });
   }
 
-  var position = context.debut.offset(this.$element);
+  var position = context.debut.offset(context.$element);
 
-  switch (this.options.from) {
+  switch (context.options.from) {
     default:
     case 'left':
-      leftShift = -(this.$element.width() + position.left);
+      leftShift = -(context.$element.width() + position.left);
       break;
     case 'right':
       leftShift = context.debut.bounds.visibleWidth - position.left;
       break;
     case 'top':
-      topShift = -(this.$element.height() + position.top);
+      topShift = -(context.$element.height() + position.top);
       break;
     case 'bottom':
       topShift = context.debut.bounds.visibleHeight - position.top;
@@ -272,19 +319,19 @@ animations.slide.prepare = function prepare(context) {
   }
 
   if (context.direction === 1) {
-    this.$element.css({
+    context.$element.css({
       x: '+=' + context.direction * leftShift,
       y: '+=' + context.direction * topShift
     });
   }
 
-  this.store.leftShift = leftShift;
-  this.store.topShift = topShift;
+  context.store.leftShift = leftShift;
+  context.store.topShift = topShift;
 };
 
 animations.slide.beforeState = function beforeState(context) {
-  this.store.x = this.$element.css('x');
-  this.store.y = this.$element.css('y');
+  context.store.x = context.$element.css('x');
+  context.store.y = context.$element.css('y');
 };
 
 animations.slide.defaultOptions = {
@@ -300,15 +347,15 @@ animations.slide.defaultOptions = {
  * TODO: Keep track of multiple elements if necessary
  */
 animations.animatecss = function animatecss(context, callback) {
-  var toGo = context.reversed ? this.store.props : this.options.props;
+  var toGo = context.reversed ? context.store.props : context.options.props;
 
-  this.$element.transit(toGo, context.duration, this.options.easing, callback);
+  context.$element.transit(toGo, context.duration, context.options.easing, callback);
 };
 
 animations.animatecss.beforeState = function beforeState(context) {
-  this.store.props = {};
-  for (var key in this.options.props) {
-    this.store.props[key] = this.$element.css(key);
+  context.store.props = {};
+  for (var key in context.options.props) {
+    context.store.props[key] = context.$element.css(key);
   }
 };
 
@@ -324,15 +371,15 @@ animations.animatecss.defaultOptions = {
  * TODO: Keep track of multiple elements if necessary
  */
 animations.animate = function animate(context, callback) {
-  var toGo = context.reversed ? this.store.props : this.options.props;
+  var toGo = context.reversed ? context.store.props : context.options.props;
 
-  this.$element.animate(toGo, context.duration, this.options.easing, callback);
+  context.$element.animate(toGo, context.duration, context.options.easing, callback);
 };
 
 animations.animate.beforeState = function beforeState(context) {
-  this.store.props = {};
-  for (var key in this.options.props) {
-    this.store.props[key] = this.$element.attr(key);
+  context.store.props = {};
+  for (var key in context.options.props) {
+    context.store.props[key] = context.$element.attr(key);
   }
 };
 
@@ -499,7 +546,7 @@ Debut.prototype._addEventListeners = function addEventListeners() {
  */
 Debut.prototype.step = function step(element, animation, options) {
   if (typeof element === 'string') {
-    element = $(element)[0];
+    element = $(element);
   }
 
   animation = Debut.animations[animation];
@@ -593,7 +640,7 @@ Debut.prototype.proceed = function proceed(direction, callback, fast) {
     _animation2['default']._runArray(animation, context);
   } else {
     context.direction *= animation.direction;
-    animation.run(context, callback);
+    animation._run(context, callback);
   }
 };
 
