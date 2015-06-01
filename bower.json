@@ -1,11 +1,11 @@
 {
   "name": "debut",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "authors": [
     "Christian Silver <christian@decode.org.nz>"
   ],
   "description": "HTML Presentation Framework",
-  "main": "dist/debut.min.js",
+  "main": "dist/debut.js",
   "moduleType": [
     "amd",
     "globals",

@@ -1,8 +1,8 @@
 {
   "name": "debut",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "HTML Presentation Framework",
-  "main": "lib/main.js",
+  "main": "dist/debut.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "jsdoc lib/*.js -d docs -t ./node_modules/ink-docstrap/template -c ./conf.json"
