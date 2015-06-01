@@ -9,7 +9,7 @@
   }
 }(this, function(jQuery, __transit) {
 var __debut;
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -18,7 +18,7 @@ Object.defineProperty(exports, '__esModule', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _animations = require('./animations');
+var _animations = _dereq_('./animations');
 
 var _animations2 = _interopRequireDefault(_animations);
 
@@ -254,7 +254,7 @@ Animation.animations = _animations2['default'];
 exports['default'] = Animation;
 module.exports = exports['default'];
 
-},{"./animations":2}],2:[function(require,module,exports){
+},{"./animations":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -390,7 +390,7 @@ animations.animate.defaultOptions = {
 exports['default'] = animations;
 module.exports = exports['default'];
 
-},{}],3:[function(require,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -399,15 +399,15 @@ Object.defineProperty(exports, '__esModule', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _animation = require('./animation');
+var _animation = _dereq_('./animation');
 
 var _animation2 = _interopRequireDefault(_animation);
 
-var _presenter = require('./presenter');
+var _presenter = _dereq_('./presenter');
 
 var _presenter2 = _interopRequireDefault(_presenter);
 
-var _screenfull = require('screenfull');
+var _screenfull = _dereq_('screenfull');
 
 var _screenfull2 = _interopRequireDefault(_screenfull);
 
@@ -798,7 +798,7 @@ Debut.PresenterView = _presenter2['default'];
 exports['default'] = Debut;
 module.exports = exports['default'];
 
-},{"./animation":1,"./presenter":4,"screenfull":5}],4:[function(require,module,exports){
+},{"./animation":1,"./presenter":4,"screenfull":5}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -952,7 +952,7 @@ PresenterView.prototype._renderTimer = function _renderTimer() {
 exports['default'] = PresenterView;
 module.exports = exports['default'];
 
-},{}],5:[function(require,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 /*!
 * screenfull
 * v2.0.0 - 2014-12-22
@@ -1099,12 +1099,12 @@ module.exports = exports['default'];
 	}
 })();
 
-},{}],6:[function(require,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 // The __debut variable is defined in the context of the whole module definition
 // Which allows it to export the debut object
 'use strict';
 
-__debut = require('./debut'); // jshint ignore:line
+__debut = _dereq_('./debut'); // jshint ignore:line
 
 },{"./debut":3}]},{},[6]);
 

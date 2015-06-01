@@ -56,6 +56,7 @@ gulp.task('js', function () {
     .on('error', onError)
     .pipe(source('debut.js'))
     .pipe(buffer())
+    .pipe($.derequire())
     .pipe($.umd({
       dependencies: function () {
         return [
