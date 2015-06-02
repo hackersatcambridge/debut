@@ -910,7 +910,8 @@ var PresenterView = function PresenterView(element, debut, win, doc) {
   this.$ = {
     container: $(element),
     window: $(win),
-    document: $(doc) };
+    document: $(doc)
+  };
 
   this.$.milestones = this.$.container.find('.debut-milestones');
   this.elements.milestones = this.$.milestones[0];
@@ -1007,7 +1008,7 @@ PresenterView.prototype.toggleTimer = function toggleTimer() {
  * @returns {Bool} If the timer is playing
  */
 PresenterView.prototype.isPlaying = function isPlaying() {
-  return this.interval != null;
+  return this.interval !== null;
 };
 
 /**
