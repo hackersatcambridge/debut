@@ -81,15 +81,20 @@ Animation.prototype._run = function run(context, callback) {
 
   var finished = [];
 
+  this.$elements.forEach(function (element, ind) {
+    finished[ind] = 1;
+  });
+
   this.$elements.forEach((function (element, ind) {
     var newContext = this.contexts[ind];
+    var done = false;
     var newCallback = function newCallback() {
       finished[ind] = 0;
-      if (finished.indexOf(1) === -1) {
+      if (!done && finished.indexOf(1) === -1) {
+        done = true;
         callback();
       }
     };
-    finished[ind] = 1;
 
     for (var i in context) {
       newContext[i] = context[i];
@@ -280,13 +285,45 @@ animations.appear.defaultOptions = {
 };
 
 /**
+ * Fades the element in
+ */
+animations.fade = function (context, callback) {
+  context.$element.transit({
+    opacity: context.direction === 1 ? context.store.opacity : 0
+  }, {
+    duration: context.duration,
+    easing: context.options.easing,
+    complete: callback
+  });
+};
+
+animations.fade.prepare = function (context) {
+  if (context.direction === 1) {
+    context.$element.css('opacity', 0);
+  }
+};
+
+animations.fade.beforeState = function beforeState(context) {
+  context.store.opacity = context.$element.css('opacity');
+};
+
+animations.fade.defaultOptions = {
+  entrance: true,
+  duration: 500
+};
+
+/**
  * Slides the element in from a side of the screen
  */
 animations.slide = function slide(context, callback) {
   context.$element.transit({
     x: '+=' + -context.direction * context.store.leftShift,
     y: '+=' + -context.direction * context.store.topShift
-  }, context.duration, context.options.easing, callback);
+  }, {
+    duration: context.duration,
+    easing: context.options.easing,
+    complete: callback
+  });
 };
 
 animations.slide.prepare = function prepare(context) {
@@ -627,7 +664,6 @@ Debut.prototype.prev = function prev() {
  * @private
  */
 Debut.prototype.proceed = function proceed(direction, callback, fast) {
-  console.log(this.animationIndex);
   if (direction === -1) {
     this.animationIndex -= 1;
   }
@@ -661,8 +697,10 @@ Debut.prototype.proceed = function proceed(direction, callback, fast) {
  */
 Debut.prototype.goTo = function goTo(index, callback) {
   if (typeof index === 'string') {
+    var found = false;
     this.milestones.forEach(function (milestone) {
-      if (milestone.name.toLocaleLowerCase() === index.toLocaleLowerCase()) {
+      if (!found && milestone.name.toLocaleLowerCase() === index.toLocaleLowerCase()) {
+        found = true;
         index = milestone.index;
       }
     });
@@ -675,7 +713,7 @@ Debut.prototype.goTo = function goTo(index, callback) {
   }
 
   var direction = difference > 0 ? 1 : -1;
-  console.log(direction, difference);
+  console.log(direction, difference, index);
 
   var proceed = (function () {
     var cb = callback;
