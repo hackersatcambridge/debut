@@ -647,9 +647,16 @@ Debut.prototype.proceed = function proceed(direction, callback, fast) {
 /**
  * Go to a state in the presentation
  *
- * @param {Number} index - Index of the animation queue
+ * @param {Number|String} index - Index of the animation queue or name of milestone
  */
 Debut.prototype.goTo = function goTo(index, callback) {
+  if (typeof index === 'string') {
+    this.milestones.forEach(function (milestone) {
+      if (milestone.name.toLocaleLowerCase() === index.toLocaleLowerCase()) {
+        index = milestone.index;
+      }
+    });
+  }
   index = Math.max(0, Math.min(this.animationQueue.length, index));
 
   var difference = index - this.animationIndex;
