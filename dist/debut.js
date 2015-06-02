@@ -349,7 +349,12 @@ animations.slide.defaultOptions = {
 animations.animatecss = function animatecss(context, callback) {
   var toGo = context.reversed ? context.store.props : context.options.props;
 
-  context.$element.transit(toGo, context.duration, context.options.easing, callback);
+  context.$element.transit(toGo, {
+    duration: context.duration,
+    easing: context.options.easing,
+    complete: callback,
+    queue: false
+  });
 };
 
 animations.animatecss.beforeState = function beforeState(context) {
@@ -373,7 +378,12 @@ animations.animatecss.defaultOptions = {
 animations.animate = function animate(context, callback) {
   var toGo = context.reversed ? context.store.props : context.options.props;
 
-  context.$element.animate(toGo, context.duration, context.options.easing, callback);
+  context.$element.animate(toGo, {
+    duration: context.duration,
+    easing: context.options.easing,
+    complete: callback,
+    queue: false
+  });
 };
 
 animations.animate.beforeState = function beforeState(context) {
