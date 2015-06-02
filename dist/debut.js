@@ -616,7 +616,10 @@ Debut.prototype.step = function step(element, animation, options) {
     element = $(element);
   }
 
-  animation = Debut.animations[animation];
+  if (typeof animation === 'string') {
+    animation = Debut.animations[animation];
+  }
+
   animation = new _animation2['default'](animation, $.extend({}, { element: element }, options));
 
   // Group animations that are to be played together
