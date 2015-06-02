@@ -377,11 +377,31 @@ animations.slide.defaultOptions = {
 };
 
 /**
+ * Class changing animations
+ */
+animations.toggleclass = function toggleclass(context, callback) {
+  var classState = !context.store.hasClass && !context.reversed;
+  if (classState) {
+    context.$element.addClass(context.options['class']);
+  } else {
+    context.$element.removeClass(context.options['class']);
+  }
+
+  setTimeout(callback.bind(this), context.duration);
+};
+
+animations.toggleclass.beforeState = function beforeState(context) {
+  context.store.hasClass = context.$element.hasClass(context.options['class']);
+};
+
+animations.toggleclass.defaultOptions = {
+  duration: 0
+};
+
+/**
  * Allows you to arbitrarily animate css using css transitions
  *
  * Uses Transit internally, so look to their documentation
- *
- * TODO: Keep track of multiple elements if necessary
  */
 animations.animatecss = function animatecss(context, callback) {
   var toGo = context.reversed ? context.store.props : context.options.props;
