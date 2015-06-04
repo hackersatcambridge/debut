@@ -926,6 +926,22 @@ var PresenterView = function PresenterView(element, debut, win, doc) {
 
   this.$.container.find('.debut-button-reset-timer').click(this.resetTimer.bind(this));
   this.$.container.find('.debut-button-pause-timer').click(this.toggleTimer.bind(this));
+
+  if (this.debut.options.keys) {
+    var checkKeys = (function (keys, e, fn) {
+      var self = this;
+      this.debut.options.keys[keys].forEach(function (key) {
+        if (e.which === key) {
+          fn.call(self);
+        }
+      });
+    }).bind(this);
+
+    this.$.window.keyup((function (e) {
+      checkKeys('next', e, debut.next.bind(debut));
+      checkKeys('prev', e, debut.prev.bind(debut));
+    }).bind(this));
+  }
 };
 
 /**
