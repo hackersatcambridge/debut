@@ -1,6 +1,6 @@
 {
   "name": "debut",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "HTML Presentation Framework",
   "main": "dist/debut.js",
   "scripts": {
