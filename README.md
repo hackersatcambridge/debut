@@ -74,7 +74,11 @@ Where `context` is an object with the following properties:
 {
   debut: Object, // Debut Instance
   reversed: Boolean, // Whether the current animation is playing backwards (along the animation queue)
-  direction: Number // Direction the animation is playing in (with respect to the animation definition) - reversed is taken into account
+  direction: Number, // Direction the animation is playing in (with respect to the animation definition) - reversed is taken into account
+  duration: Number, // The length of this animation in milliseconds
+  store: Object, // Any properties stored in a beforeState function
+  element: Object, // The object to be animated
+  $element: Object // The object to be animated (guaranteed to be a jQuery object)
 }
 ```
 
