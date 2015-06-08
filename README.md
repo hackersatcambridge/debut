@@ -124,3 +124,38 @@ Open presenter view. We will come back to this.
 
 
 # Declarative API (DOM)
+
+The delcarative API works by iterating over the DOM tree inside the presentation container.
+At any point, the programmatic API may have specified particular elements or selectors that
+should have an animation added through a hook. This is different to simply adding an animation
+with the programmatic API.
+
+This is done in tandem with the programmatic API. By using the programmatic API, you are specifying
+an element to be animated, which gives a position in the DOM tree. Between each of these calls,
+the points on the DOM in between will be iterated over and relevant hooks called.
+
+By default, a `data-` API will be used to allow inline animation declaration. But for ease of theming,
+these hooks will be able to be leveraged by anything.
+
+## data-anim
+
+The value of this attribute can be treated as a JavaScript function call where the name of the 
+function is the animation desired to be executed (as defined in `Debut.animations`), and the arguments
+are the options. An optional second argument is the actual element to do the animation on,
+as opposed to the element being iterated over.
+
+    data-anim="name(options[, element])"
+
+For example, this is how I would animate in an element with the `slide` class using the slide
+animation:
+
+    <div data-anim="slide({duration: 1000}, '.slide')"></div>
+
+## data-anim-exit
+
+This data attribute is the same as `data-anim` except it specifies that the animation
+should be executed when the DOM iterater reaches the end of that element. By default,
+the options will be set to `reverse: true` (unless the animation has a default). You can
+easily override this by setting `reverse: false` in the options.
+
+    <div data-anim-exit="slide({reverse: false})"></div>
