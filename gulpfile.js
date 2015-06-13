@@ -19,7 +19,10 @@ var onError = function (e) {
   this.emit('end');
 };
 
-// Compile less files into a single css file
+/**
+ * Compile LESS files into CSS
+ * Minify if required
+ */
 gulp.task('css', function () {
   return gulp.src(['less/main.less', 'less/presenter.less'], {base: path.join(__dirname, 'less')})
     .pipe($.plumber({
@@ -90,18 +93,25 @@ gulp.task('js', function () {
     .pipe($.if(isDist, gulp.dest('dist')));
 });
 
-// Build the whole thing
+/**
+ * Build Everything
+ */
 gulp.task('build', function () {
   sequence(['css', 'js']);
 });
 
-// Watch for changes
+/**
+ * Watch for changes
+ */
 gulp.task('watch', ['build'], function () {
   gulp.watch(['lib/*.js'], ['js']);
   gulp.watch(['less/*.less'], ['css']);
   gulp.watch('test/**', bs.reload);
 });
 
+/**
+ * Serve a test server and update changes automatically
+ */
 gulp.task('serve', ['watch'], function () {
   bs.init({
     server: './test',
@@ -109,3 +119,8 @@ gulp.task('serve', ['watch'], function () {
     middleware: serveStatic('./dist')
   });
 });
+
+/**
+ * Serve by default
+ */
+gulp.task('default', ['serve']);
