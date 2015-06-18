@@ -499,6 +499,13 @@ var Debut = function Debut(element, options) {
   this.$.container = $(this.elements.container);
 
   this.$.container.addClass('debut-container');
+  var optionClasses = ['focusFlash'];
+  optionClasses.forEach((function (c) {
+    if (this.options[c]) {
+      this.$.container.addClass('debut-option-' + c.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase());
+    }
+  }).bind(this));
+
   this.$.container.attr('tabindex', '1');
   this.$.innerContainer = this.$.container.wrapInner('<div class="debut-container-inner">').children();
   this.$.innerContainer.css({ width: this.options.baseWidth, height: this.options.baseWidth / this.options.aspect });
@@ -908,7 +915,8 @@ Debut.defaultOptions = {
     fullscreen: [70 /* F key */]
   },
   clickToProceed: true,
-  presenterUrl: 'presenter.html'
+  presenterUrl: 'presenter.html',
+  focusFlash: true
 };
 
 // Export everything
