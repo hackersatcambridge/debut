@@ -506,6 +506,9 @@ var Debut = function Debut(element, options) {
 
   this._presenterViewWindow = null;
 
+  this._lastDomElement = null;
+  this._animationAdders = [];
+
   this.bounds = {};
 
   this.animationQueue = [];
@@ -566,22 +569,24 @@ Debut.prototype._addEventListeners = function addEventListeners() {
   this.resize();
   $(window).on('resize', this.resize.bind(this));
 
-  // First click lets the presentation gain focus, second lets you proceed
-  this.$.container.click((function () {
-    if (this._focusState === 1) {
-      this._focusState = 0;
-    } else if (this._focusState === 0) {
-      this.next();
-    }
-  }).bind(this));
+  if (this.options.clickToProceed) {
+    // First click lets the presentation gain focus, second lets you proceed
+    this.$.container.click((function () {
+      if (this._focusState === 1) {
+        this._focusState = 0;
+      } else if (this._focusState === 0) {
+        this.next();
+      }
+    }).bind(this));
 
-  this.$.container.on('focus', (function () {
-    this._focusState = 1;
-  }).bind(this));
+    this.$.container.on('focus', (function () {
+      this._focusState = 1;
+    }).bind(this));
 
-  this.$.container.on('blur', (function () {
-    this._focusState = 2;
-  }).bind(this));
+    this.$.container.on('blur', (function () {
+      this._focusState = 2;
+    }).bind(this));
+  }
 
   $(window).on('beforeunload', (function () {
     if (this._presenterViewWindow) {
@@ -612,6 +617,8 @@ Debut.prototype._addEventListeners = function addEventListeners() {
  * Adds an animation to the animation queue
  */
 Debut.prototype.step = function step(element, animation, options) {
+  options = options || {};
+
   if (typeof element === 'string') {
     element = $(element);
   }
@@ -621,6 +628,12 @@ Debut.prototype.step = function step(element, animation, options) {
   }
 
   animation = new _animation2['default'](animation, $.extend({}, { element: element }, options));
+
+  var to = $(options.to)[0] || element instanceof $ ? element[0] : element;
+
+  if (this._animationAdders.length > 0 && to instanceof HTMLElement) {
+    this._iterateDom(to);
+  }
 
   // Group animations that are to be played together
   if (animation.start !== 'step') {
@@ -660,6 +673,29 @@ Debut.prototype.then = function then(element, animation, options) {
 
   return this.step(element, animation, options);
 };
+
+/**
+ * Adds a hook for animations to be added for certain selectors in the DOM
+ *
+ * Does not work
+ *
+ * @param {String} selector - CSS selector to determine elements
+ * @param {Function} hook - Function of the form hook(debut, element) to be called for valid elements
+ * @param {Object} [options] - Extra options
+ */
+Debut.prototype.all = function all(selector, hook, options) {
+  options = options || {};
+
+  this._animationAdders.push({
+    selector: selector,
+    hook: hook,
+    options: options
+  });
+
+  return this;
+};
+
+Debut.prototype._iterateDom = function iterateDom(to) {};
 
 /**
  * Proceed to the next state of the presentation
@@ -865,6 +901,7 @@ Debut.defaultOptions = {
     presenter: [80 /* P key */],
     fullscreen: [70 /* F key */]
   },
+  clickToProceed: true,
   presenterUrl: 'presenter.html'
 };
 
@@ -875,6 +912,10 @@ Debut.PresenterView = _presenter2['default'];
 
 exports['default'] = Debut;
 module.exports = exports['default'];
+
+// TODO: Iterate over DOM recursively until we reach start of TO element
+// and execute hooks where necessary
+// Keep track of last "to" element for next iteration
 
 },{"./animation":1,"./presenter":4,"screenfull":5}],4:[function(_dereq_,module,exports){
 'use strict';
