@@ -3,9 +3,9 @@ Debut
 
 Give your ideas the limelight.
 
-**Disclaimer:** This readme is currently serving as a design document so this is non-functional.
+**Disclaimer:** This readme is currently serving as a half design-document, half usage docs. Some things don't work - apologies!
 
-Communicating our ideas effectively and convincingly is extremely important with today's fast-paced way of living. But when it comes to the ways we give presentations, we're still stuck in an old-school way of thinking.
+Communicating our ideas effectively and convincingly is extremely important with people's short-lived attention spans. But when it comes to the ways we give presentations, we're still stuck in an old-school way of thinking.
 
 ## Slides are the Problem
 
@@ -15,7 +15,7 @@ Yes - some new age ideas have emerged recently. The infinite canvas method showc
 
 What if we had a blank canvas, and you have a series of animations that get executed?
 
-Add some default styles and useful animations, and you could have yourself an infinite canvas "Prezi" style presentation, or a typical slides based presentation. Or anything that represents your ideas. Give them what they deserve.
+Add some default styles and useful animations, and you could have yourself an infinite canvas "Prezi" style presentation, or a typical slides based presentation. Or anything that represents your ideas. Give them the presentation that they deserve.
 
 # Programatic API (JS)
 
@@ -32,15 +32,15 @@ presentation.step('.section-1 h1', 'slide', { duration: 500, from: 'top' }) // S
   .step('.section-1 .diagram', 'fade', { duration: 1000 }) // Fade in an image
   .then('.section-1 .diagram-caption', 'slide', { duration: 500, from: 'bottom' }) // Afterwards, slide the caption from the bottom
 	.milestone('Diagram') // Indicate that this point in the presentation is one that we'd like to skip to in presenter view
-  .step(animatables, 'property', { 
-      duration: 2000, 
+  .step(animatables, 'property', {
+      duration: 2000,
       values: { number: 500 },
       onstep: function (animatables) {
         $('.dollars').text('$' + animatables.number);
       }
     }) // Animate a number from 0 to 500 while updating the text of an element to represent that
-  .and('.dollars', 'css', { 
-      duration: 500, 
+  .and('.dollars', 'css', {
+      duration: 500,
       values: { scale: 2 }
     }) // At the same time
   .activate(); // Start the presentation and manipulate all of the DOM stuff
@@ -139,7 +139,7 @@ these hooks will be able to be leveraged by anything.
 
 ## data-anim
 
-The value of this attribute can be treated as a JavaScript function call where the name of the 
+The value of this attribute can be treated as a JavaScript function call where the name of the
 function is the animation desired to be executed (as defined in `Debut.animations`), and the arguments
 are the options. An optional second argument is the actual element to do the animation on,
 as opposed to the element being iterated over.
