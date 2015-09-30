@@ -17,6 +17,10 @@
     <script>
       var presentation = new Debut($('.presentation')[0]);
 
+      presentation.all('div', function (debut, element) {
+        console.log(element);
+      });
+
       presentation
         .step('.to-appear', 'slide', { from: 'right' })
           .and('.to-appear-with', 'appear', { delay: 600 })
