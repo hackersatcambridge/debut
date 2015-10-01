@@ -6,9 +6,11 @@
     <div class="presentation">
       <div class="to-appear">Hi!</div>
       <div class="to-appear-with">Hello!</div>
+      <div class="slide-in">Slider</div>
       <div class="to-appear-2">Hello</div>
       <div class="to-appear-with-2">Hellos</div>
       <div class="block" style="width: 600px; height: 50px; background: red"></div>
+      <div class="slide-in">Slider</div>
       <div class="block" style="width: 200px; height: 50px; background: green"></div>
     </div>
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -17,9 +19,11 @@
     <script>
       var presentation = new Debut($('.presentation')[0]);
 
-      presentation.all('div', function (debut, element) {
-        console.log(element);
-      });
+      presentation
+        .all('.slide-in', function (debut, element) {
+          console.log('I call', element);
+          debut.step(element, 'slide');
+        });
 
       presentation
         .step('.to-appear', 'slide', { from: 'right' })
@@ -29,7 +33,8 @@
           .then('.to-appear', 'slide', { from: 'bottom', reverse: true, delay: 500 })
           .milestone('Almost everything')
         .step('.to-appear-with-2', 'animatecss', { props: { color: 'red', rotate: '-10deg' } })
-        .step('.block', 'slide');
+        .step('.block', 'slide')
+        .ready();
     </script>
   </body>
 </html>
