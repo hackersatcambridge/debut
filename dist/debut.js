@@ -74,6 +74,13 @@ var Animation = function Animation(definition, options) {
   }
 };
 
+/**
+ * @private
+ * Runs this animation
+ *
+ * @param  {object} context - Context from Debut object
+ * @param  {function} callback
+ */
 Animation.prototype._run = function run(context, callback) {
   callback = callback || function () {};
   context.duration = context.fast ? 0 : this.duration;
@@ -110,6 +117,12 @@ Animation.prototype._run = function run(context, callback) {
   this.firstRun = false;
 };
 
+/**
+ * Runs this animation with a pre-modified contexts
+ *
+ * @param  {object} context - Modified context
+ * @param  {function} callback - Callback when animation is complete
+ */
 Animation.prototype._runWithContext = function run(context, callback) {
   if (this.firstRun && !context.reversed && this.definition.beforeState) {
     this.definition.beforeState.call(this, context);
@@ -474,6 +487,10 @@ var _presenter = _dereq_('./presenter');
 
 var _presenter2 = _interopRequireDefault(_presenter);
 
+var _domIterator = _dereq_('./dom-iterator');
+
+var _domIterator2 = _interopRequireDefault(_domIterator);
+
 var _screenfull = _dereq_('screenfull');
 
 var _screenfull2 = _interopRequireDefault(_screenfull);
@@ -487,6 +504,8 @@ var $ = jQuery;
  * The primary Debut object is responsible for handling the presentation.
  *
  * @constructor Debut
+ * @param element - The element to turn into a presentation
+ * @param options
  */
 var Debut = function Debut(element, options) {
   // Store jQuery objects for later reference
@@ -513,8 +532,9 @@ var Debut = function Debut(element, options) {
 
   this._presenterViewWindow = null;
 
-  this._lastDomElement = null;
-  this._animationAdders = [];
+  this._domIterator = new _domIterator2['default'](this.$.innerContainer, (function (hook, $element) {
+    hook.call(this, this, $element);
+  }).bind(this));
 
   this.bounds = {};
 
@@ -530,6 +550,8 @@ var Debut = function Debut(element, options) {
   if (this.options.letterbox) {
     this.$.container.addClass('debut-letterbox');
   }
+
+  this._ready = false;
 
   this._addEventListeners();
   this.milestone('Start');
@@ -621,7 +643,14 @@ Debut.prototype._addEventListeners = function addEventListeners() {
 };
 
 /**
- * Adds an animation to the animation queue
+ * Adds an animation to the animation queue. If an element is supplied, the animation
+ * will be applied to that element. Otherwise, the animation function will simply be
+ * executed
+ *
+ * @param {object|string} [element] - The element to animate over
+ * @param {function|string} animation - The animation name or definition
+ * @param {object} [options]
+ * @returns {object} This Debut instance
  */
 Debut.prototype.step = function step(element, animation, options) {
   options = options || {};
@@ -644,8 +673,8 @@ Debut.prototype.step = function step(element, animation, options) {
 
   var to = $(options.to)[0] || element instanceof $ ? element[0] : element;
 
-  if (this._animationAdders.length > 0 && to instanceof HTMLElement) {
-    this._iterateDom(to);
+  if (this._domIterator.countHooks() > 0 && to instanceof HTMLElement) {
+    this._domIterator.iterate(to);
   }
 
   // Group animations that are to be played together
@@ -671,6 +700,11 @@ Debut.prototype.step = function step(element, animation, options) {
 
 /**
  * Adds an animation to the animation queue that starts with the previous animation
+ *
+ * @param {object|string} [element]
+ * @param {function|string} animation
+ * @param {object} [options]
+ * @returns {object} This Debut instance
  */
 Debut.prototype.and = function and(element, animation, options) {
   options = $.extend({ start: 'with' }, options);
@@ -680,6 +714,11 @@ Debut.prototype.and = function and(element, animation, options) {
 
 /**
  * Adds an animation to the queue that starts after the previous animation
+ *
+ * @param {object|string} [element]
+ * @param {function|string} animation
+ * @param {object} [options]
+ * @returns {object} This Debut instance
  */
 Debut.prototype.then = function then(element, animation, options) {
   options = $.extend({ start: 'after' }, options);
@@ -690,25 +729,31 @@ Debut.prototype.then = function then(element, animation, options) {
 /**
  * Adds a hook for animations to be added for certain selectors in the DOM
  *
- * Does not work
- *
  * @param {String} selector - CSS selector to determine elements
  * @param {Function} hook - Function of the form hook(debut, element) to be called for valid elements
  * @param {Object} [options] - Extra options
  */
 Debut.prototype.all = function all(selector, hook, options) {
-  options = options || {};
-
-  this._animationAdders.push({
-    selector: selector,
-    hook: hook,
-    options: options
-  });
+  this._domIterator.addHook(selector, hook, options);
 
   return this;
 };
 
-Debut.prototype._iterateDom = function iterateDom(to) {};
+/**
+ * Indicate that the presentation is ready to run
+ *
+ * @return {Object} This Debut instance
+ */
+Debut.prototype.ready = function ready() {
+  if (this._ready) {
+    throw new Error('Debut.ready cannot be called on a presentation more than once.');
+  }
+
+  this._domIterator.iterate(this.$.innerContainer.children().last()[0], true);
+  this._ready = true;
+
+  return this;
+};
 
 /**
  * Proceed to the next state of the presentation
@@ -736,6 +781,11 @@ Debut.prototype.prev = function prev() {
  * @private
  */
 Debut.prototype.proceed = function proceed(direction, callback, fast) {
+  if (!this._ready) {
+    console.warning('Calling Debut.ready on first animation. For better performance, call this yourself after all of the animations have been added.');
+    this.ready();
+  }
+
   if (direction === -1) {
     this.animationIndex -= 1;
   }
@@ -785,7 +835,6 @@ Debut.prototype.goTo = function goTo(index, callback) {
   }
 
   var direction = difference > 0 ? 1 : -1;
-  console.log(direction, difference, index);
 
   var proceed = (function () {
     var cb = callback;
@@ -849,7 +898,6 @@ Debut.prototype.openPresenterView = function openPresenterView(url, callback) {
   }
 
   this._presenterViewWindow = window.open(url, 'Debut Presenter View', 'height=800,width=1000,modal=yes');
-  console.log(this._presenterViewWindow);
 
   this._presenterViewWindow.onload = (function () {
     this.presenterView = new _presenter2['default']($(this._presenterViewWindow.document).find('.debut-presenter-view')[0], this, this._presenterViewWindow);
@@ -923,15 +971,176 @@ Debut.defaultOptions = {
 Debut.Animation = _animation2['default'];
 Debut.animations = _animation2['default'].animations;
 Debut.PresenterView = _presenter2['default'];
+Debut.DomIterator = _domIterator2['default'];
 
 exports['default'] = Debut;
 module.exports = exports['default'];
 
-// TODO: Iterate over DOM recursively until we reach start of TO element
-// and execute hooks where necessary
-// Keep track of last "to" element for next iteration
+},{"./animation":1,"./dom-iterator":4,"./presenter":5,"screenfull":6}],4:[function(_dereq_,module,exports){
+'use strict';
 
-},{"./animation":1,"./presenter":4,"screenfull":5}],4:[function(_dereq_,module,exports){
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+/** @module Debut */
+
+/**
+ * The `DomIterator` class is runs hooks on DOM elements between two elements
+ * in the tree. It runs arbitrary callbacks that can be used for more specific
+ * implementations.
+ *
+ * @param {Object} $container - jQuery object for the containing element
+ * @param {Function} callback - Callback fo the form `function (hook, $element)`
+ */
+var DomIterator = function DomIterator($container, callback) {
+  this._hooks = [];
+  this._$container = $container;
+  this._lastDomElement = null;
+  this.callback = callback;
+};
+
+/**
+ * Adds a hooks for selector when iterating through elements
+ *
+ * @param {String} selector - CSS selector to determine elements
+ * @param {Object} hook - Arbitrary handler to be passed when matches are made
+ * @param {Object} [options] - Extra options
+ */
+DomIterator.prototype.addHook = function addHook(selector, hook, options) {
+  options = options || {};
+
+  this._hooks.push({
+    selector: selector,
+    hook: hook,
+    options: options
+  });
+
+  return this;
+};
+
+/**
+ * Iterates through the DOM to the element `to`
+ */
+DomIterator.prototype.iterate = function iterate(to, finish) {
+  this._iterateDom(to, !!finish);
+};
+
+DomIterator.prototype.countHooks = function countHooks() {
+  return this._hooks.length;
+};
+
+/**
+ * Iterates over the DOM, running registered hooks on elements between `start`
+ * and `to`.
+ *
+ * @param {Object} to - The element to finish on
+ * @param {Object} [finish] - Whether to iterate to the end of the `to` element or not
+ * @param {Object} [start] - The element to start on
+ * @private
+ */
+DomIterator.prototype._iterateDom = function iterateDom(to, finish, start) {
+  if (!this._lastDomElement) {
+    this._lastDomElement = this._$container.children()[0];
+  }
+
+  // If we haven't passed a "start" element, then this is the first.
+  // We need to check that the target `to` is after `start` and is contained
+  // in the presentation element.
+  if (!start) {
+    if (!$.contains(this._$container[0], to)) {
+      return true;
+    }
+
+    var $containerChildren = this._$container.find('*');
+
+    start = this._lastDomElement;
+
+    var startIndex = $($containerChildren).index(start);
+    var endIndex = $($containerChildren).index(to);
+
+    if (startIndex >= endIndex) {
+      return true;
+    }
+  }
+
+  this._lastDomElement = start;
+
+  if (start == to && !finish) {
+    return true;
+  }
+
+  var self = this;
+  var $start = $(start);
+
+  var exits = [];
+
+  // Find all matching hooks
+  self._runDomHooks($start);
+
+  var $children = $start.children();
+
+  if ($children.length > 0) {
+    if (this._iterateDom(to, finish, $children[0])) {
+      return true;
+    }
+  }
+
+  return this._finishDomElement(start, to, finish);
+};
+
+/**
+ * @private
+ */
+DomIterator.prototype._finishDomElement = function finishDomElement(element, to, finish) {
+  var $element = $(element);
+
+  this._runDomHooks($element, true);
+
+  if (element == to) {
+    this._lastDomElement = element;
+    return true;
+  }
+
+  // Find sibling
+  var $sibling = $element.next();
+
+  if ($sibling.length > 0) {
+    return this._iterateDom(to, finish, $sibling[0]);
+  }
+
+  // Find parent
+  var $parent = $element.parent();
+
+  if ($parent.length > 0) {
+    return this._iterateDom(to, finish, $parent[0]);
+  }
+
+  // Nothing else to traverse, just say we're finished
+  return true;
+};
+
+/**
+ * Runs the hooks for a particular element
+ *
+ * @param {Object} $element - jQuery element to run hooks for
+ * @param {Boolean} end - Whether this should run "finishing" hooks or not
+ * @private
+ */
+DomIterator.prototype._runDomHooks = function runDomHooks($element, end) {
+  var self = this;
+  end = !!end;
+  this._hooks.forEach(function (adder) {
+    if ($element.is(adder.selector) && (adder.options.on === 'exit' && end || adder.options.on !== 'exit' && !end)) {
+      self.callback.call(null, adder.hook, $element);
+    }
+  });
+};
+
+exports['default'] = DomIterator;
+module.exports = exports['default'];
+
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1005,9 +1214,7 @@ var PresenterView = function PresenterView(element, debut, win, doc) {
  * @private
  */
 PresenterView.prototype._addMilestones = function addMilestones() {
-  console.log('Add milestones', this.debut.milestones);
   this.debut.milestones.forEach((function (milestone) {
-    console.log(milestone);
     var element = $('<button class="debut-button debut-milestone">' + milestone.name + '</div>');
 
     element.click((function () {
@@ -1022,7 +1229,6 @@ PresenterView.prototype._addMilestones = function addMilestones() {
  * Starts the timer in the presenter view
  */
 PresenterView.prototype.startTimer = function startTimer() {
-  console.log('Start');
   if (!this.isPlaying()) {
     var now = Date.now();
     this.startTime += now - this.lastTime;
@@ -1039,7 +1245,7 @@ PresenterView.prototype.startTimer = function startTimer() {
  * Pausess the timer in the presenter view
  */
 PresenterView.prototype.pauseTimer = function stopTimer() {
-  console.log('Pause');
+
   if (this.isPlaying()) {
     clearInterval(this.interval);
     this.interval = null;
@@ -1102,7 +1308,7 @@ PresenterView.prototype._renderTimer = function _renderTimer() {
 exports['default'] = PresenterView;
 module.exports = exports['default'];
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 /*!
 * screenfull
 * v2.0.0 - 2014-12-22
@@ -1249,14 +1455,14 @@ module.exports = exports['default'];
 	}
 })();
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 // The __debut variable is defined in the context of the whole module definition
 // Which allows it to export the debut object
 'use strict';
 
 __debut = _dereq_('./debut'); // jshint ignore:line
 
-},{"./debut":3}]},{},[6]);
+},{"./debut":3}]},{},[7]);
 
 return __debut;
 }));
