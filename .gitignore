@@ -1,4 +1,9 @@
-# Created by https://www.gitignore.io
+
+### Debut ###
+
+dist/
+
+# Below created by https://www.gitignore.io
 
 ### OSX ###
 .DS_Store
