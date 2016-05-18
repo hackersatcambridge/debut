@@ -4,58 +4,25 @@
   "description": "HTML Presentation Framework",
   "main": "dist/debut.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "jsdoc lib/*.js -d docs -t ./node_modules/ink-docstrap/template -c ./conf.json"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
     "lib",
-    "less",
+    "styles",
     "dist"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pinpickle/debut"
+    "url": "https://github.com/hackersatcambridge/debut"
   },
-  "author": "Christian Silver",
+  "author": "Hackers at Cambridge",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pinpickle/debut/issues"
+    "url": "https://github.com/hackersatcambridge/debut/issues"
   },
-  "homepage": "https://github.com/pinpickle/debut",
+  "homepage": "https://github.com/hackersatcambridge/debut",
   "devDependencies": {
-    "babelify": "^6.1.0",
-    "browser-sync": "^2.7.1",
-    "browserify": "^10.1.3",
-    "del": "^1.1.1",
-    "eslint": "^1.3.1",
-    "gulp": "^3.8.11",
-    "gulp-autoprefixer": "^2.2.0",
-    "gulp-derequire": "^2.1.0",
-    "gulp-es6-module-transpiler": "^0.2.1",
-    "gulp-esperanto": "^0.2.0",
-    "gulp-if": "^1.2.5",
-    "gulp-jsdoc": "^0.1.4",
-    "gulp-less": "^3.0.3",
-    "gulp-load-plugins": "^0.10.0",
-    "gulp-minify-css": "^1.1.1",
-    "gulp-plumber": "^1.0.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^1.2.0",
-    "gulp-umd": "^0.1.3",
-    "gulp-util": "^3.0.4",
-    "gutil": "^1.6.4",
-    "ink-docstrap": "^0.5.2",
-    "jsdoc": "^3.3.0",
-    "normalize.css": "^3.0.3",
-    "run-sequence": "^1.1.0",
-    "screenfull": "^2.0.0",
-    "serve-static": "^1.9.2",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "yargs": "^3.8.0"
   },
   "peerDependencies": {
-    "jquery": "*",
-    "jquery.transit": "^0.9.12"
   }
 }
