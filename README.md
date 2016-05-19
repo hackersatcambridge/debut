@@ -1,5 +1,5 @@
-Debut
-=====
+# Debut [![Build Status](https://travis-ci.org/hackersatcambridge/debut.svg?branch=master)](https://travis-ci.org/hackersatcambridge/debut)
+
 
 ## Installing
 
