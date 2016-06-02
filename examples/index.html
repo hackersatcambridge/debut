@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debut Example</title>
+    <link rel="stylesheet" href="../styles/debut.css" />
+    <script src="../dist/debut.js"></script>
+  </head>
+  <body>
+    <script>
+      let action1 = new debut.Action();
+      let action2 = new debut.Action();
+      let queue = new debut.ActionQueue();
+
+      action1.run = () => console.log('hello');
+      action2.run = () => console.log('goodbye');
+
+      queue.addAction(action1);
+      queue.addAction(action2);
+
+      queue.proceed();
+    </script>
+  </body>
+</html>
