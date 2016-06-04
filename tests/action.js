@@ -7,12 +7,11 @@ describe('actions', () => {
       this.b = 0;
     }
 
-    run(reverse) {
-      super.run();
+    performAction(reverse) {
       this.a = reverse ? 0 : 1;
     }
 
-    beforeRun() {
+    setupAction() {
       this.b += 1;
     }
   }
@@ -45,12 +44,11 @@ describe('ActionQueue', () => {
       this.b = 0;
     }
 
-    run(reverse) {
-      super.run();
+    performAction(reverse) {
       a += reverse ? -1 : 1;
     }
 
-    beforeRun() {
+    setupAction() {
       b += 1;
     }
   }
