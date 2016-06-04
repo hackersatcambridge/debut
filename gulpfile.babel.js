@@ -20,21 +20,25 @@ import yargs from 'yargs';
 const argv = yargs.argv;
 const isProd = argv.prod;
 
-/**
- * Build JS
- */
-gulp.task('build:js', () => gulp.src('lib/debut.js')
-  .pipe(rollup({
+function createRollupOptions(name) {
+  return {
     sourceMap: !isProd,
     format: 'umd',
-    moduleName: 'debut',
+    moduleName: name,
     plugins: [
       babel({
         presets: ['es2015-rollup'],
         babelrc: false,
       }),
     ],
-  }))
+  };
+}
+
+/**
+ * Build JS
+ */
+gulp.task('build:js', () => gulp.src('lib/debut.js')
+  .pipe(rollup(createRollupOptions('debut')))
   .pipe(gulpif(!isProd, sourcemap.write()))
   .pipe(gulpif(isProd, uglify()))
   .pipe(gulp.dest('dist'))

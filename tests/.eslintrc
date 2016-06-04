@@ -1,0 +1,14 @@
+{
+  "extends": "airbnb",
+  "env": {
+    "browser": true,
+    "es6": true,
+    "jasmine": true
+  },
+  "globals": {
+    "debut": false
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  }
+}
