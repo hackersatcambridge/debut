@@ -21,14 +21,16 @@ describe('Action', () => {
   it('should be able to run', () => {
     expect(action1.a).toBe(0);
     expect(action1.b).toBe(0);
-    action1.run();
-    expect(action1.a).toBe(1);
-    expect(action1.b).toBe(1);
+    return action1.run().then(() => {
+      expect(action1.a).toBe(1);
+      expect(action1.b).toBe(1);
+    });
   });
 
   it('should run in reverse', () => {
-    action1.run(true);
-    expect(action1.a).toBe(0);
-    expect(action1.b).toBe(1);
+    action1.run(true).then(() => {
+      expect(action1.a).toBe(0);
+      expect(action1.b).toBe(1);
+    });
   });
 });
