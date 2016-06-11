@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debut Example</title>
+    <link rel="stylesheet" href="../styles/debut.css" />
+    <script src="../dist/debut.js"></script>
+
+    <style>
+      .container *, .container {
+        border: 1px solid #000;
+        padding: 5px;
+      }
+
+      .entered {
+        border-color: red;
+        border-width: 2px;
+      }
+
+      .exited {
+        border-color: blue;
+        border-width: 1px;
+        border-style: dashed;
+      }
+    </style>
+  </head>
+    <div class="container">
+      <p>Click on an element to iterate to it. The button at the end will complete the iteration</p>
+
+      <p>Bold, red border means the element is entered but not exited</p>
+
+      <p>Dashed, blue border means the element has been entered and exited</p>
+      <ul>
+        <li>Number 1</li>
+        <li>Number 2</li>
+        <li>Number 3</li>
+      </ul>
+      <div>
+        <div>
+          <div>
+            <div>Nesting is important</div>
+            <div>Making sure it works</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="finish">Finish</button>
+  <body>
+    <script>
+      let iterator = new debut.DomIterator(
+        document.querySelector('.container'),
+        (el, type) => {
+          console.log(type, el);
+          switch (type) {
+            case 'enter':
+              el.classList.add('entered');
+              break;
+            case 'exit':
+              el.classList.add('exited');
+              break;
+          }
+        });
+
+      document.querySelector('.finish').onclick = () => iterator.complete();
+      [...document.querySelectorAll('.container *')].forEach(
+        (el) => (el.onclick = () => iterator.gotoElement(el))
+      );
+    </script>
+  </body>
+</html>
