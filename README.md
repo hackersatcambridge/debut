@@ -1,5 +1,8 @@
-Debut
-=====
+# This repository has moved
+
+Go to [https://github.com/debutjs/debut](https://github.com/debutjs/debut) for the current codebase.
+
+# Debut
 
 Give your ideas the limelight.
 
